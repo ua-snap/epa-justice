@@ -1,7 +1,7 @@
 import requests
 import json
 import pandas as pd
-from api_luts import api_key
+from utilities.api_luts import api_key
 
 def fetch_print_json(url, parse):
     """Helper function to use while fetching census API data. If its a top-level metadata request (parse="metadata"), 
