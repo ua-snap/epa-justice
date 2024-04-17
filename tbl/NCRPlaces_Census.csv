@@ -56,6 +56,7 @@ AK11,Allakaket,Aalaa Kkaakk’et,Alaska,US,66.5656,-152.646,community,1600000US0
 AK110,Eklutna,Idlughet,Alaska,US,61.458,-149.362,community,,,,
 AK111,Ekuk,,Alaska,US,58.804,-158.541,community,,,,
 AK112,Ekwok,Iquaq,Alaska,US,59.3497,-157.475,community,1600000US0221810,Ekwok city,Incorporated place,
+AK114,Elfin Cove,,Alaska,US,58.1944,-136.343,community,1600000US0222140,Elfin Cove CDP,Census designated place,
 AK115,Elim,Neviarcaurluq,Alaska,US,64.6175,-162.26,community,1600000US0222250,Elim city,Incorporated place,
 AK116,Ellamar,,Alaska,US,60.8961,-146.708,community,,,,
 AK117,Emmonak,Imangaq,Alaska,US,62.7778,-164.523,community,1600000US0222910,Emmonak city,Incorporated place,
@@ -75,6 +76,7 @@ AK130,Fort Yukon,Gwichyaa Zheh,Alaska,US,66.5647,-145.274,community,1600000US022
 AK131,Fox,,Alaska,US,64.958,-147.618,community,1600000US0226870,Fox CDP,Census designated place,
 AK132,Gakona,Ggax Kuna’,Alaska,US,62.3019,-145.302,community,1600000US0227420,Gakona CDP,Census designated place,
 AK133,Galena,Notaalee Denh,Alaska,US,64.7333,-156.927,community,1600000US0227530,Galena city,Incorporated place,
+AK134,Gambell,Sivuqaq,Alaska,US,63.7797,-171.741,community,1600000US0227640,Gambell city,Incorporated place,
 AK135,Georgetown,,Alaska,US,61.9085,-157.787,community,,,,
 AK136,Girdwood,,Alaska,US,60.9421,-149.167,community,,,,
 AK137,Glennallen,,Alaska,US,62.1092,-145.546,community,1600000US0228740,Glennallen CDP,Census designated place,
@@ -143,6 +145,7 @@ AK196,King Salmon,,Alaska,US,58.6883,-156.661,community,1600000US0239630,King Sa
 AK197,Kipnuk,Qipnek,Alaska,US,59.9389,-164.041,community,1600000US0239740,Kipnuk CDP,Census designated place,
 AK198,Kivalina,Kivaliñiq,Alaska,US,67.7269,-164.533,community,1600000US0239960,Kivalina city,Incorporated place,
 AK2,Akhiok,Kasukuak,Alaska,US,56.9455,-154.17,community,1600000US0200650,Akhiok city,Incorporated place,
+AK200,Klawock,Lawaak,Alaska,US,55.5522,-133.096,community,1600000US0240400,Klawock city,Incorporated place,
 AK201,Klery Creek,,Alaska,US,67.1793,-160.4,community,,,,
 AK202,Klukwan,Tlákw.aan,Alaska,US,59.3991,-135.894,community,1600000US0240510,Klukwan CDP,Census designated place,
 AK203,Knik,,Alaska,US,61.4578,-149.729,community,1600000US0240645,Knik-Fairview CDP,Census designated place,
@@ -193,6 +196,7 @@ AK244,Medfra,,Alaska,US,63.1067,-154.714,community,,,,
 AK245,Mekoryuk,Mikuryar,Alaska,US,60.388,-166.185,community,1600000US0247990,Mekoryuk city,Incorporated place,
 AK246,Mendeltna,,Alaska,US,62.0487,-146.5386,community,1600000US0248200,Mendeltna CDP,Census designated place,
 AK247,Mentasta Lake,Mendaesde,Alaska,US,62.9212,-143.792,community,1600000US0248540,Mentasta Lake CDP,Census designated place,
+AK248,Metlakatla,Maxłakxaała,Alaska,US,55.1292,-131.572,community,1600000US0248870,Metlakatla CDP,Census designated place,
 AK249,Meyers Chuck,,Alaska,US,55.7408,-132.256,community,,,,
 AK25,Atqasuk,,Alaska,US,70.4694,-157.396,community,1600000US0204500,Atqasuk city,Incorporated place,
 AK250,Minto,,Alaska,US,65.1496,-149.3504,community,1600000US0249530,Minto CDP,Census designated place,
@@ -274,6 +278,7 @@ AK322,Port Graham,Paluwik,Alaska,US,59.3514,-151.83,community,1600000US0263280,P
 AK323,Port Heiden,Masrriq,Alaska,US,56.9566,-158.645,community,1600000US0263390,Port Heiden city,Incorporated place,
 AK324,Port Lions,Masiqsirraq,Alaska,US,57.8675,-152.882,community,1600000US0263610,Port Lions city,Incorporated place,
 AK326,Port Moller,,Alaska,US,55.99,-160.577,community,,,,
+AK327,Port Protection,,Alaska,US,56.3127,-133.602,community,1600000US0263870,Port Protection CDP,Census designated place,
 AK328,Portage,,Alaska,US,60.8381,-148.979,community,,,,
 AK329,Portage Creek,,Alaska,US,58.9006,-157.714,community,1600000US0262285,Portage Creek CDP,Census designated place,
 AK33,Bell Island Hot Springs,,Alaska,US,55.933,-131.566,community,,,,
@@ -445,6 +450,7 @@ AK63,Chenega Bay,Caniqaq,Alaska,US,60.0746,-148.003,community,1600000US0212970,C
 AK64,Chevak,Cevʼaq,Alaska,US,61.5278,-165.586,community,1600000US0213230,Chevak city,Incorporated place,
 AK65,Chickaloon,Nay’dini’aa Na’,Alaska,US,61.7967,-148.463,community,1600000US0213340,Chickaloon CDP,Census designated place,
 AK66,Chicken,,Alaska,US,64.0733,-141.936,community,1600000US0213450,Chicken CDP,Census designated place,
+AK67,Chignik,Cirniq,Alaska,US,56.2953,-158.402,community,1600000US0213550,Chignik city,Incorporated place,
 AK68,Chignik Lagoon,Nanwarnaq,Alaska,US,56.3104,-158.5361,community,1600000US0213670,Chignik Lagoon CDP,Census designated place,
 AK69,Chignik Lake,Igyaraq,Alaska,US,56.2552,-158.7696,community,1600000US0213780,Chignik Lake CDP,Census designated place,
 AK7,Alatna,Alaasuq,Alaska,US,66.5542,-152.7019,community,1600000US0201305,Alatna CDP,Census designated place,
@@ -470,6 +476,7 @@ AK87,Cooper Landing,,Alaska,US,60.4906,-149.833,community,1600000US0217190,Coope
 AK88,Copper Center,Tl’aticae’e,Alaska,US,61.955,-145.305,community,1600000US0217300,Copper Center CDP,Census designated place,
 AK89,Cordova,,Alaska,US,60.5428,-145.757,community,1600000US0217410,Cordova city,Incorporated place,
 AK90,Council,,Alaska,US,64.895,-163.676,community,,,,
+AK91,Craig,Sháan Séet,Alaska,US,55.4764,-133.148,community,1600000US0217740,Craig city,Incorporated place,
 AK92,Crooked Creek,Qipcarpak,Alaska,US,61.87,-158.111,community,1600000US0217850,Crooked Creek CDP,Census designated place,
 AK93,Deadhorse,,Alaska,US,70.2097,-148.418,community,,,,
 AK94,Deering,Ipnatchiaq,Alaska,US,66.0755,-162.717,community,1600000US0218510,Deering city,Incorporated place,
@@ -3662,17 +3669,14 @@ YTPA9,Lewes Marsh Habitat Protection Area,,,,,,protected_area,,,,
 ,,,,,,,,1600000US0209710,Butte CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0212350,Chase CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0212920,Chena Ridge CDP,Census designated place,Add to NCR Place Names
-,,,,,,,,1600000US0213550,Chignik city,Incorporated place,Add to NCR Place Names
 ,,,,,,,,1600000US0216630,Coldfoot CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0217670,Covenant Life CDP,Census designated place,Add to NCR Place Names
-,,,,,,,,1600000US0217740,Craig city,Incorporated place,Add to NCR Place Names
 ,,,,,,,,1600000US0217960,Crown Point CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0218675,Deltana CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0218805,Denali Park CDP,Census designated place,"Add to NCR Place Names, park boundary is not the same as where people live"
 ,,,,,,,,1600000US0218925,Diamond Ridge CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0219750,Dot Lake Village CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0220716,Eareckson Station CDP,Census designated place,Add to NCR Place Names
-,,,,,,,,1600000US0222140,Elfin Cove CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0223720,Eureka Roadhouse CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0223790,Evansville CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0225000,Farm Loop CDP,Census designated place,Add to NCR Place Names
@@ -3682,7 +3686,6 @@ YTPA9,Lewes Marsh Habitat Protection Area,,,,,,protected_area,,,,
 ,,,,,,,,1600000US0226910,Fox River CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0227090,Fritz Creek CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0227145,Funny River CDP,Census designated place,Add to NCR Place Names
-,,,,,,,,1600000US0227640,Gambell city,Incorporated place,Add to NCR Place Names
 ,,,,,,,,1600000US0227700,Game Creek CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0228200,Gateway CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0228590,Glacier View CDP,Census designated place,Add to NCR Place Names
@@ -3691,7 +3694,6 @@ YTPA9,Lewes Marsh Habitat Protection Area,,,,,,protected_area,,,,
 ,,,,,,,,1600000US0231710,Happy Valley CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0231765,Harding-Birch Lakes CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0232550,Hobart Bay CDP,Census designated place,Add to NCR Place Names
-,,,,,,,,1600000US0240400,Klawock city,Incorporated place,Add to NCR Place Names
 ,,,,,,,,1600000US0240670,Knik River CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0241210,Kodiak Station CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0242805,Lake Louise CDP,Census designated place,Add to NCR Place Names
@@ -3700,7 +3702,6 @@ YTPA9,Lewes Marsh Habitat Protection Area,,,,,,protected_area,,,,
 ,,,,,,,,1600000US0245700,Lutak CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0247735,Meadow Lakes CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0248590,Mertarvik CDP,Census designated place,Add to NCR Place Names
-,,,,,,,,1600000US0248870,Metlakatla CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0249200,Mill Bay CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0250080,Moose Creek CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0250800,Mosquito Lake CDP,Census designated place,Add to NCR Place Names
@@ -3712,7 +3713,6 @@ YTPA9,Lewes Marsh Habitat Protection Area,,,,,,protected_area,,,,
 ,,,,,,,,1600000US0261825,Point Possession CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0262125,Pope-Vannoy Landing CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0263170,Port Clarence CDP,Census designated place,Add to NCR Place Names
-,,,,,,,,1600000US0263870,Port Protection CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0264240,Primrose CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0264980,Red Dog Mine CDP,Census designated place,Add to NCR Place Names
 ,,,,,,,,1600000US0265345,Ridgeway CDP,Census designated place,Add to NCR Place Names
