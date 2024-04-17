@@ -45,12 +45,21 @@ def get_areatype_geoid_strings(geoid_lu_df, gvv_id):
             for geoidfq in geoidfqs.to_list():
                 place_geoids.append(geoidfq[-5:])
             geoidfq_str = (",").join(place_geoids)
+        elif areatype_str == 'zip%20code%20tabulation%20area':
+            # get last 5 digits for zip code
+            zctas = []
+            for geoidfq in geoidfqs.to_list():
+                zctas.append(geoidfq[-5:])
+            geoidfq_str = (",").join(zctas)
     elif len(geoidfqs) == 1:
         if areatype_str == 'county':
             # get last 3 digits as county FIPS code
             geoidfq_str = geoidfqs.to_list()[0][-3:]
         elif areatype_str == 'place':
             # get last 5 digits for place code
+            geoidfq_str = geoidfqs.to_list()[0][-5:]
+        elif areatype_str == 'zip%20code%20tabulation%20area':
+            # get last 5 digits for zip code
             geoidfq_str = geoidfqs.to_list()[0][-5:]
     else:
         # TODO: raise an error
@@ -72,7 +81,7 @@ def compute_dhc(dhc_data):
     dhc_data['pct_65_plus'] = dhc_data['total_65_plus']/dhc_data['total_population']*100
     dhc_data['pct_under_18'] = dhc_data['total_under_18']/dhc_data['total_population']*100
 
-    return dhc_data[['total_population', 'pct_65_plus', 'pct_under_18']]
+    return dhc_data[['GEOID', 'total_population', 'pct_65_plus', 'pct_under_18']]
 
 
 def compute_acs5(acs5_data):
@@ -96,7 +105,12 @@ def fetch_data_and_compute(survey_id, gvv_id, geoid_lu_df):
     var_str = (',').join(list(var_dict[survey_id]["vars"].keys()))
     areatype_str, geoidfq_str = get_areatype_geoid_strings(geoid_lu_df, gvv_id)
 
-    url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={api_key}"
+    # exclude state code from query if ZCTA
+    if areatype_str not in ["place", "county"]:
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&key={api_key}"
+    # otherwise include state FIPS code "02" for Alaska
+    else:
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={api_key}"
     
     print(f"fetching data from: {url}")
 
@@ -109,11 +123,11 @@ def fetch_data_and_compute(survey_id, gvv_id, geoid_lu_df):
             r_json = r.json()
     # convert to dataframe and reformat
     df = pd.DataFrame(r_json[1:], columns=r_json[0]).astype(float)
-    # drop non-data columns
-    droplist = ["state", "place", "county", "zip code tabulation area"]
+    # rename geo column
+    geolist = ["state", "place", "county", "zip code tabulation area"]
     for c in df.columns:
-        if c in droplist:
-            df.drop(columns=c, inplace=True)
+        if c in geolist:
+            df.rename(columns={c:"GEOID"}, inplace=True)
     # use short names for variables columns if they exist in the dict
     new_cols_dict = {}
     for col in df.columns:
