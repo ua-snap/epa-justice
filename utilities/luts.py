@@ -142,26 +142,38 @@ var_dict = {
                 "CASTHMA": {
                     "long_name": "Current asthma among adults aged >=18 years",
                     "short_name": "pct_asthma",
+                    "data_value_type_name": "age-adjusted prevalence",
+                    "data_value_type_id": "AgeAdjPrv",
                 },
                 "COPD": {
                     "long_name": "Chronic obstructive pulmonary disease among adults aged >=18 years",
                     "short_name": "pct_copd",
+                    "data_value_type_name": "crude prevalence",
+                    "data_value_type_id": "CrdPrv",
                 },
                 "CHD": {
                     "long_name": "Coronary heart disease among adults aged >=18 years",
                     "short_name": "pct_hd",
+                    "data_value_type_name": "age-adjusted prevalence",
+                    "data_value_type_id": "AgeAdjPrv",
                 },
                 "STROKE": {
                     "long_name": "Stroke among adults aged >=18 years",
                     "short_name": "pct_stroke",
+                    "data_value_type_name": "age-adjusted prevalence",
+                    "data_value_type_id": "AgeAdjPrv",
                 },
                 "DIABETES": {
                     "long_name": "Diagnosed diabetes among adults aged >=18 years",
                     "short_name": "pct_diabetes",
+                    "data_value_type_name": "crude prevalence",
+                    "data_value_type_id": "CrdPrv",
                 },
                 "KIDNEY": {
                     "long_name": "Chronic kidney disease among adults aged >=18 years",
                     "short_name": "pct_kd",
+                    "data_value_type_name": "age-adjusted prevalence",
+                    "data_value_type_id": "AgeAdjPrv",
                 },
             },
         },

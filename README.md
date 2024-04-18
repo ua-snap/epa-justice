@@ -53,14 +53,14 @@ The data variables below are pulled for each geography. The `short name` column 
 
 
 ### CDC PLACES Year 2023
-| Variable ID | long name | short name |
+| Variable ID | long name | short name | data value type |
 | -------- | ------- | ------ |
-| CASTHMA | Current asthma among adults aged >=18 years | pct_asthma |              
-| COPD | Chronic obstructive pulmonary disease among adults aged >=18 years | pct_copd |            
-| CHD | Coronary heart disease among adults aged >=18 years | pct_hd | 
-| STROKE | Stroke among adults aged >=18 years | pct_stroke |            
-| DIABETES | Diagnosed diabetes among adults aged >=18 years | pct_diabetes |    
-| KIDNEY | Chronic kidney disease among adults aged >=18 years | pct_kd |
+| CASTHMA | Current asthma among adults aged >=18 years | pct_asthma | age-adjusted prevalence |               
+| COPD | Chronic obstructive pulmonary disease among adults aged >=18 years | pct_copd | crude prevalence |             
+| CHD | Coronary heart disease among adults aged >=18 years | pct_hd | age-adjusted prevalence | 
+| STROKE | Stroke among adults aged >=18 years | pct_stroke | age-adjusted prevalence |            
+| DIABETES | Diagnosed diabetes among adults aged >=18 years | pct_diabetes | crude prevalence |    
+| KIDNEY | Chronic kidney disease among adults aged >=18 years | pct_kd | age-adjusted prevalence |
 
 ### CDC SDOH Years 2017-2021
 | Variable ID | long name | short name |
