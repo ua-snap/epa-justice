@@ -54,7 +54,7 @@ The data variables below are pulled for each geography. The `short name` column 
 
 ### CDC PLACES Year 2023
 | Variable ID | long name | short name | data value type |
-| -------- | ------- | ------ |
+| -------- | ------- | ------ | ------ |
 | CASTHMA | Current asthma among adults aged >=18 years | pct_asthma | age-adjusted prevalence |               
 | COPD | Chronic obstructive pulmonary disease among adults aged >=18 years | pct_copd | crude prevalence |             
 | CHD | Coronary heart disease among adults aged >=18 years | pct_hd | age-adjusted prevalence | 
