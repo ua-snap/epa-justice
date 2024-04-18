@@ -5,6 +5,96 @@ import numpy as np
 from utilities.luts import *
 
 
+def fetch_and_merge(geoid_lu_df, gvv_id):
+    """Given the lookup table and GVV ID, fetches all data and merges the results into a dataframe.
+
+    Args:
+        geoid_lu_df (pandas.DataFrame): table with GVV IDs and associated GEOIDFQs
+        gvv_id (str): GVV ID used to look up associated GEOIDFQ(s)
+    Returns:
+        pandas.DataFrame
+    """
+    geoids = get_standard_geoid_df(geoid_lu_df, gvv_id)
+    dhc = fetch_census_data_and_compute("dhc", gvv_id, geoid_lu_df)
+    acs5 = fetch_census_data_and_compute("acs5", gvv_id, geoid_lu_df)
+    cdc = fetch_cdc_data_and_compute(gvv_id, geoid_lu_df)
+
+    df = geoids.merge(dhc, how="left", left_on="GEOID", right_on="GEOID").merge(
+        acs5, how="left", left_on="GEOID", right_on="GEOID").merge(
+            cdc, how="left", left_on="GEOID", right_on="locationid")
+    
+    return df
+
+
+def get_standard_geoid_df(geoid_lu_df, gvv_id):
+    """Create a simple dataframe of requested GEOIDS, with no state FIPS code.
+    All results tables will be joined to this table.
+
+    Args:
+        geoid_lu_df (pandas.DataFrame): table with GVV IDs and associated GEOIDFQs
+        gvv_id (str): GVV ID used to look up associated GEOIDFQ(s)
+    Returns:
+        pandas.DataFrame
+    """
+    # list GVV IDs & names (they should be dups if >1)
+    gvv_ids = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['id'].to_list()
+    gvv_names = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['name'].to_list()
+    # list census area placename, areatype, and geoidfqs (should be unique if >1)
+    placenames = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['PLACENAME'].to_list()
+    areatypes = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['AREATYPE'].to_list()
+    geoidfqs = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['GEOIDFQ'].to_list()
+
+    if len(areatypes) == 0:
+        # TODO: raise an error
+        print("no associated AREATYPE found!")
+    else:
+        if areatypes[0] == 'County':
+            areatype_str = 'county'
+        elif areatypes[0] in ['Census designated place', 'Incorporated place']:
+            areatype_str = 'place'
+        elif areatypes[0] == 'ZCTA':
+            areatype_str = 'zcta'
+        else:
+            # TODO: raise an error
+            print("unrecognized AREATYPE!")
+
+    if len(geoidfqs) > 1:
+        if areatype_str == 'county':
+            # get last 3 digits as county FIPS code
+            geoid_list = []
+            for geoidfq in geoidfqs:
+                geoid_list.append(geoidfq[-3:])
+        elif areatype_str == 'place':
+            # get last 5 digits as place code
+            geoid_list = []
+            for geoidfq in geoidfqs:
+                geoid_list.append(geoidfq[-5:])
+        elif areatype_str == 'zcta':
+            # get last 5 digits for zip code
+            geoid_list = []
+            for geoidfq in geoidfqs:
+                geoid_list.append(geoidfq[-5:])
+    elif len(geoidfqs) == 1:
+        if areatype_str == 'county':
+            # get last 3 digits as county FIPS code
+            geoid_list = [geoidfqs[0][-3:]]
+        elif areatype_str == 'place':
+            # get last 5 digits as place code
+            geoid_list = [geoidfqs[0][-5:]]
+        elif areatype_str == 'zcta':
+            # get last 5 digits for zip code
+            geoid_list = [geoidfqs[0][-5:]]
+    else:
+        # TODO: raise an error
+        print("no associated GEOIDFQs found!")
+
+
+    df = pd.DataFrame(zip(gvv_ids, gvv_names, areatypes, placenames, geoid_list), 
+                      columns=["id", "name", "areatype", "placename", "GEOID"])
+    
+    return df
+
+
 def get_cdc_areatype_locationid_list(geoid_lu_df, gvv_id):
     """Get strings for area type and locationid's for a given GVV ID. GEOIDFQs are converted to CDC locationids.
     There will only be one area type, but strings may include more than one locationid. For CDC data, these are returned as a list.
@@ -62,7 +152,6 @@ def get_cdc_areatype_locationid_list(geoid_lu_df, gvv_id):
         print("no associated GEOIDFQs found!")
 
     return areatype_str, locationid_list
-
 
 
 def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
@@ -149,6 +238,12 @@ def compute_acs5(acs5_data):
     return acs5_data
 
 
+def compute_cdc(cdc_data):
+    """Compute CDC data columns."""
+    # no computation necessary at the moment, but keeping this as a placeholder.
+    return cdc_data
+
+
 def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
     """Fetch census data from their API. Using the census survey id, joins a base URL to a list of variable codes, area type, and GEOIDFQ(s),
     and requests the URL. Returns the JSON response. Print an error message if no response.
@@ -172,8 +267,6 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
     else:
         url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={api_key}"
     
-    print(f"fetching data from: {url}")
-
     # request the data, raise error if not returned
     with requests.get(url) as r:
         if r.status_code != 200:
@@ -227,6 +320,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
     results = {}
     # do a separate query for each var and location and collect results
     for locationid in locationid_list:
+
         loc_results = {}
         for var_str in var_dict["cdc"]["PLACES"]["vars"].keys():
             base_url = var_dict["cdc"]["PLACES"]["url"][areatype_str]
@@ -237,8 +331,6 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
                 # do not specify data value type id... only crude prevalence is available for ZCTAs!
                 url = f"{base_url}?measureid={var_str}&locationid={locationid}"
             
-            print(f"fetching data from: {url}")
-
             with requests.get(url) as r:
                 if r.status_code != 200:
                     #TODO: raise error
@@ -260,8 +352,6 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
             else:
                 url = f"{base_url}?measureid={var_str}&locationid={locationid}"
 
-            print(f"fetching data from: {url}")
-
             with requests.get(url) as r:
                 if r.status_code != 200:
                     #TODO: raise error
@@ -275,10 +365,20 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
 
             short_name = var_dict["cdc"]["SDOH"]["vars"][var_str]["short_name"]
             loc_results[short_name] = val
+
+        # standardize locationid to match geoids for joining later on
+        # removes state FIPS for county and place, should not affect zip codes
+        if locationid.startswith("02"):
+            locationid = locationid[2:]
         results[locationid] = loc_results
 
-        df = pd.DataFrame.from_dict(results, orient='index')
-        
+        #convert to dataframe and reformat
+        df = pd.DataFrame.from_dict(results, orient='index', )
+        # change any negative data values to NA... -6666666 is a commonly used nodata value, but there may be others that are not negative
+        # nodata values are also introduced above for any empty returns
+        df.where(df >= 0, np.nan, inplace=True)
+        # rename loc col
+        df.reset_index(names='locationid', inplace=True)
+        # drop any state FIPS prefix that occurs in the locationid column, for easier joining
 
-
-    return results_df
+    return compute_cdc(df)
