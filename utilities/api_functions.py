@@ -90,7 +90,7 @@ def compute_acs5(acs5_data):
     return acs5_data
 
 
-def fetch_data_and_compute(survey_id, gvv_id, geoid_lu_df):
+def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
     """Fetching census API data. Using the census survey id, joins a base URL to a list of variable codes, area type, and GEOIDFQ(s),
     and requests the URL. Returns the JSON response. Print an error message if no response.
     

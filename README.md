@@ -1,7 +1,7 @@
 # epa-justice
 Accessing US Census data and CDC health data via API to support demographic data summaries in SNAP's [Northern Climate Reports](https://northernclimatereports.org/).
 
-This repo demonstrates access to the US Census Data via their API endpoints ([ACS 5-year](https://www.census.gov/data/developers/data-sets/acs-5year.html) and [DHC](https://www.census.gov/data/developers/data-sets/decennial-census.html)) , and the CDC [PLACES](https://www.cdc.gov/places/index.html) dataset via their API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-County-Data-20/swc5-untb/about_data), [place](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Place-Data-202/eav7-hnsx/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-ZCTA-Data-2023/qnzd-25i4/about_data) geographies).
+This repo demonstrates access to the US Census datasets via their survey-specific API endpoints ([ACS 5-year](https://www.census.gov/data/developers/data-sets/acs-5year.html) and [DHC](https://www.census.gov/data/developers/data-sets/decennial-census.html)), the CDC [PLACES](https://www.cdc.gov/places/index.html) datasets via their geography-specific API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-County-Data-20/swc5-untb/about_data), [place](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Place-Data-202/eav7-hnsx/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-ZCTA-Data-2023/qnzd-25i4/about_data)), and the CDC [SDOH](https://www.cdc.gov/places/social-determinants-of-health-and-places-data/index.html) datasets via their geography-specific API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-County-ACS-2017-2021/i6u4-y3g4/about_data), [place](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-Place-ACS-2017-2021/edkk-ze78/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-ZCTA-ACS-2017-2021/bumh-rgsq/about_data)).
 
 This repo includes some basic helper functions and lookup tables to support the EPA-Justice-HIA project which pulls demographic data from the US Census and CDC datasets. The functions here will take Alaska community IDs (from [this collection](https://github.com/ua-snap/geospatial-vector-veracity/blob/main/vector_data/point/alaska_point_locations.csv)) as their input, cross-reference these communities to their respective geographies using the `geoid_lookup.csv` table, and compute data items relevant to the EPA-Justice-HIA project. These functions and/or the resulting tables will be incorporated into NCR.
 
@@ -52,7 +52,21 @@ The data variables below are pulled for each geography. The `short name` column 
 | S2701_C05_001M | Margin of Error!!Percent Uninsured!!Civilian noninstitutionalized population	| moe_pct_uninsured |
 
 
-### CDC Places Year 2023
- _TBD_
+### CDC PLACES Year 2023
 | Variable ID | long name | short name |
 | -------- | ------- | ------ |
+| CASTHMA | Current asthma among adults aged >=18 years | pct_asthma |              
+| COPD | Chronic obstructive pulmonary disease among adults aged >=18 years | pct_copd |            
+| CHD | Coronary heart disease among adults aged >=18 years | pct_hd | 
+| STROKE | Stroke among adults aged >=18 years | pct_stroke |            
+| DIABETES | Diagnosed diabetes among adults aged >=18 years | pct_diabetes |    
+| KIDNEY | Chronic kidney disease among adults aged >=18 years | pct_kd |
+
+### CDC SDOH Years 2017-2021
+| Variable ID | long name | short name |
+| -------- | ------- | ------ |
+REMNRTY | Persons of racial or ethnic minority status | pct_minority |
+NOHSDP | No high school diploma among adults aged 25 years or older | pct_no_hsdiploma |
+POV150 | Persons living below 150% of the poverty level | pct_below_150pov |
+BROAD | No broadband internet subscription among households | pct_no_bband |
+                

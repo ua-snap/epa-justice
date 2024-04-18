@@ -131,4 +131,64 @@ var_dict = {
             },
         },
     },
+    "cdc": {
+        "PLACES":{
+            "url":{
+                "county":"https://data.cdc.gov/resource/swc5-untb.json",
+                "place":"https://data.cdc.gov/resource/eav7-hnsx.json",
+                "zcta":"https://data.cdc.gov/resource/qnzd-25i4.json",
+            },
+            "vars": {
+                "CASTHMA": {
+                    "long_name": "Current asthma among adults aged >=18 years",
+                    "short_name": "pct_asthma",
+                },
+                "COPD": {
+                    "long_name": "Chronic obstructive pulmonary disease among adults aged >=18 years",
+                    "short_name": "pct_copd",
+                },
+                "CHD": {
+                    "long_name": "Coronary heart disease among adults aged >=18 years",
+                    "short_name": "pct_hd",
+                },
+                "STROKE": {
+                    "long_name": "Stroke among adults aged >=18 years",
+                    "short_name": "pct_stroke",
+                },
+                "DIABETES": {
+                    "long_name": "Diagnosed diabetes among adults aged >=18 years",
+                    "short_name": "pct_diabetes",
+                },
+                "KIDNEY": {
+                    "long_name": "Chronic kidney disease among adults aged >=18 years",
+                    "short_name": "pct_kd",
+                },
+            },
+        },
+        "SDOH":{
+            "url":{
+                "county":"https://data.cdc.gov/resource/i6u4-y3g4.json",
+                "place":"https://data.cdc.gov/resource/edkk-ze78.json",
+                "zcta":"https://data.cdc.gov/resource/bumh-rgsq.json",
+            },
+            "vars": {
+                "REMNRTY": {
+                    "long_name": "Persons of racial or ethnic minority status",
+                    "short_name": "pct_minority",
+                },
+                "NOHSDP": {
+                    "long_name": "No high school diploma among adults aged 25 years or older",
+                    "short_name": "pct_no_hsdiploma",
+                },
+                "POV150": {
+                    "long_name": "Persons living below 150% of the poverty level",
+                    "short_name": "pct_below_150pov",
+                },
+                "BROAD": {
+                    "long_name": "No broadband internet subscription among households",
+                    "short_name": "pct_no_bband",
+                },
+            },
+        },
+    },
 }
