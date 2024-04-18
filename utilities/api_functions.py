@@ -184,10 +184,12 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
     # convert to dataframe and reformat
     df = pd.DataFrame(r_json[1:], columns=r_json[0]).astype(float)
     # rename geo column
-    geolist = ["state", "place", "county", "zip code tabulation area"]
+    geolist = ["place", "county", "zip code tabulation area"]
     for c in df.columns:
         if c in geolist:
             df.rename(columns={c:"GEOID"}, inplace=True)
+        if c == "state":
+            df.drop(columns="state", inplace=True)
     # use short names for variables columns if they exist in the dict
     new_cols_dict = {}
     for col in df.columns:
@@ -199,7 +201,8 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
     df.rename(columns=new_cols_dict, inplace=True)
     # change any negative data values to NA... -6666666 is a commonly used nodata value, but there may be others that are not negative
     df.where(df >= 0, np.nan, inplace=True)
-
+    # convert geoid to string for easier joining later on
+    df["GEOID"] = df["GEOID"].astype(int).astype(str)
 
     #TODO: compute tables based on survey id
     if survey_id == "dhc":
@@ -243,9 +246,9 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
                 else:
                     r_json = r.json()
             try:
-                val = r_json[0]['data_value']
+                val = float(r_json[0]['data_value'])
             except:
-                val = "NA"
+                val = np.nan
 
             short_name = var_dict["cdc"]["PLACES"]["vars"][var_str]["short_name"]
             loc_results[short_name] = val
@@ -266,14 +269,16 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
                 else:
                     r_json = r.json()
             try:
-                val = r_json[0]['data_value']
+                val = float(r_json[0]['data_value'])
             except:
-                val = "NA"
+                val = np.nan
 
             short_name = var_dict["cdc"]["SDOH"]["vars"][var_str]["short_name"]
             loc_results[short_name] = val
         results[locationid] = loc_results
 
-        results_df = pd.DataFrame.from_dict(results, orient='index')
+        df = pd.DataFrame.from_dict(results, orient='index')
+        
+
 
     return results_df
