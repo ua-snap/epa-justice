@@ -226,8 +226,8 @@ def compute_dhc(dhc_data):
     dhc_data['m_65_plus'] = dhc_data['m_65_to_66'] + dhc_data['m_67_to_69'] + dhc_data['m_70_to_74'] + dhc_data['m_75_to_79'] + dhc_data['m_80_to_84'] + dhc_data['m_85_plus']
     dhc_data['f_65_plus'] = dhc_data['f_65_to_66'] + dhc_data['f_67_to_69'] + dhc_data['f_70_to_74'] + dhc_data['f_75_to_79'] + dhc_data['f_80_to_84'] + dhc_data['f_85_plus']
     dhc_data['total_65_plus'] = dhc_data['m_65_plus'] + dhc_data['f_65_plus']
-    dhc_data['pct_65_plus'] = dhc_data['total_65_plus']/dhc_data['total_population']*100
-    dhc_data['pct_under_18'] = dhc_data['total_under_18']/dhc_data['total_population']*100
+    dhc_data['pct_65_plus'] = round(dhc_data['total_65_plus']/dhc_data['total_population']*100,2)
+    dhc_data['pct_under_18'] = round(dhc_data['total_under_18']/dhc_data['total_population']*100,2)
 
     return dhc_data[['GEOID', 'total_population', 'pct_65_plus', 'pct_under_18']]
 
