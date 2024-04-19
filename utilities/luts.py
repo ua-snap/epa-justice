@@ -1,4 +1,8 @@
+#census API key
 api_key = "839fc96162a9e16e7896434e7592eccaf7938706"
+
+#CDC app token
+app_token = "aBj1zOdJs530ivzSUlyOHkLaf"
 
 var_dict = {
     "dhc": {
