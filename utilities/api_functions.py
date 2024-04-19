@@ -54,6 +54,8 @@ def get_standard_geoid_df(geoid_lu_df, gvv_id):
             areatype_str = 'place'
         elif areatypes[0] == 'ZCTA':
             areatype_str = 'zcta'
+        elif areatypes[0] == 'Census tract':
+            areatype_str = 'tract'
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
@@ -74,6 +76,12 @@ def get_standard_geoid_df(geoid_lu_df, gvv_id):
             geoid_list = []
             for geoidfq in geoidfqs:
                 geoid_list.append(geoidfq[-5:])
+        elif areatype_str == 'tract':
+            # get last 9 digits for county FIPS code + tract code
+            geoid_list = []
+            for geoidfq in geoidfqs:
+                geoid_list.append(geoidfq[-9:])
+
     elif len(geoidfqs) == 1:
         if areatype_str == 'county':
             # get last 3 digits as county FIPS code
@@ -84,6 +92,10 @@ def get_standard_geoid_df(geoid_lu_df, gvv_id):
         elif areatype_str == 'zcta':
             # get last 5 digits for zip code
             geoid_list = [geoidfqs[0][-5:]]
+        elif areatype_str == 'tract':
+            # get last 7 digits for county FIPS code + tract code
+            geoid_list = [geoidfqs[0][-9:]]
+
     else:
         # TODO: raise an error
         print("no associated GEOIDFQs found!")
@@ -105,48 +117,60 @@ def get_cdc_areatype_locationid_list(geoid_lu_df, gvv_id):
     Returns:
         Tuple including geography type for API query (e.g., "place") and list of locationid strings in that geography type to use in API query.
         """
-    areatypes = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['AREATYPE']
+    areatypes = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['AREATYPE'].to_list()
     if len(areatypes) == 0:
         # TODO: raise an error
         print("no associated AREATYPE found!")
     else:
-        if areatypes.to_list()[0] == 'County':
+        if areatypes[0] == 'County':
             areatype_str = 'county'
-        elif areatypes.to_list()[0] in ['Census designated place', 'Incorporated place']:
+        elif areatypes[0] in ['Census designated place', 'Incorporated place']:
             areatype_str = 'place'
-        elif areatypes.to_list()[0] == 'ZCTA':
+        elif areatypes[0] == 'ZCTA':
             areatype_str = 'zcta'
+        elif areatypes[0] == 'Census tract':
+            areatype_str = 'tract'
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
 
-    geoidfqs = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['GEOIDFQ']
+    geoidfqs = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['GEOIDFQ'].to_list()
     if len(geoidfqs) > 1:
         if areatype_str == 'county':
             # get last 5 digits as state FIPS + county FIPS code
             locationid_list = []
-            for geoidfq in geoidfqs.to_list():
+            for geoidfq in geoidfqs:
                 locationid_list.append(geoidfq[-5:])
         elif areatype_str == 'place':
             # get last 7 digits as state FIPS + place code
             locationid_list = []
-            for geoidfq in geoidfqs.to_list():
+            for geoidfq in geoidfqs:
                 locationid_list.append(geoidfq[-7:])
         elif areatype_str == 'zcta':
             # get last 5 digits for zip code
             locationid_list = []
-            for geoidfq in geoidfqs.to_list():
+            for geoidfq in geoidfqs:
                 locationid_list.append(geoidfq[-5:])
+        elif areatype_str == 'tract':
+            # get last 11 digits as state FIPS + county FIPS code + tract code
+            locationid_list = []
+            for geoidfq in geoidfqs:
+                locationid_list.append(geoidfq[-11:])
+
     elif len(geoidfqs) == 1:
         if areatype_str == 'county':
             # get last 5 digits as state FIPS + county FIPS code
-            locationid_list = [geoidfqs.to_list()[0][-5:]]
+            locationid_list = [geoidfqs[0][-5:]]
         elif areatype_str == 'place':
             # get last 7 digits as state FIPS + place code
-            locationid_list = [geoidfqs.to_list()[0][-7:]]
+            locationid_list = [geoidfqs[0][-7:]]
         elif areatype_str == 'zcta':
             # get last 5 digits for zip code
-            locationid_list = [geoidfqs.to_list()[0][-5:]]
+            locationid_list = [geoidfqs[0][-5:]]
+        elif areatype_str == 'tract':
+            # get last 11 digits as state FIPS + county FIPS code + tract code
+            locationid_list = [geoidfqs[0][-11:]]
+
     else:
         # TODO: raise an error
         print("no associated GEOIDFQs found!")
@@ -164,51 +188,72 @@ def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
     Returns:
         Tuple including geography type for API query (e.g., "place") and string of GEOIDFQ id(s) in that geography type to use in API query
         """
-    areatypes = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['AREATYPE']
+    areatypes = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['AREATYPE'].to_list()
     if len(areatypes) == 0:
         # TODO: raise an error
         print("no associated AREATYPE found!")
     else:
-        if areatypes.to_list()[0] == 'County':
+        if areatypes[0] == 'County':
             areatype_str = 'county'
-        elif areatypes.to_list()[0] in ['Census designated place', 'Incorporated place']:
+        elif areatypes[0] in ['Census designated place', 'Incorporated place']:
             areatype_str = 'place'
-        elif areatypes.to_list()[0] == 'ZCTA':
+        elif areatypes[0] == 'ZCTA':
             areatype_str = 'zip%20code%20tabulation%20area'
+        elif areatypes[0] == 'Census tract':
+            areatype_str = 'tract'
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
 
-    geoidfqs = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['GEOIDFQ']
+    geoidfqs = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['GEOIDFQ'].to_list()
     if len(geoidfqs) > 1:
         if areatype_str == 'county':
             # get last 3 digits as county FIPS code
             county_geoids = []
-            for geoidfq in geoidfqs.to_list():
+            for geoidfq in geoidfqs:
                 county_geoids.append(geoidfq[-3:])
             geoidfq_str = (",").join(county_geoids)
         elif areatype_str == 'place':
             # get last 5 digits for place code
             place_geoids = []
-            for geoidfq in geoidfqs.to_list():
+            for geoidfq in geoidfqs:
                 place_geoids.append(geoidfq[-5:])
             geoidfq_str = (",").join(place_geoids)
         elif areatype_str == 'zip%20code%20tabulation%20area':
             # get last 5 digits for zip code
             zctas = []
-            for geoidfq in geoidfqs.to_list():
+            for geoidfq in geoidfqs:
                 zctas.append(geoidfq[-5:])
             geoidfq_str = (",").join(zctas)
+        elif areatype_str == 'tract':
+            # get digits -9 thru -6 as county FIPS code (for first tract only - assumes all tracts are in same county) 
+            # get last 6 digits as tract code
+            county_geoid = geoidfqs[0][-9:-6]
+            tracts = []
+            for geoidfq in geoidfqs:
+                tracts.append(geoidfq[-6:])
+            # return as list: tract is a special case that will be checked for in fetch_census_data_and_compute()
+            geoidfq_str = [county_geoid, (",").join(tracts)]
+
+
     elif len(geoidfqs) == 1:
         if areatype_str == 'county':
             # get last 3 digits as county FIPS code
-            geoidfq_str = geoidfqs.to_list()[0][-3:]
+            geoidfq_str = geoidfqs[0][-3:]
         elif areatype_str == 'place':
             # get last 5 digits for place code
-            geoidfq_str = geoidfqs.to_list()[0][-5:]
+            geoidfq_str = geoidfqs[0][-5:]
         elif areatype_str == 'zip%20code%20tabulation%20area':
             # get last 5 digits for zip code
-            geoidfq_str = geoidfqs.to_list()[0][-5:]
+            geoidfq_str = geoidfqs[0][-5:]
+        elif areatype_str == 'tract':
+            # get digits -9 thru -6 as county FIPS code (for first tract only - assumes all tracts are in same county) 
+            # get last 6 digits as tract code
+            county_geoid = geoidfqs[0][-9:-6]
+            tract_geoid = geoidfqs[0][-6:]
+            # return as list: tract is a special case that will be checked for in fetch_census_data_and_compute()
+            geoidfq_str = [county_geoid, tract_geoid]
+
     else:
         # TODO: raise an error
         print("no associated GEOIDFQs found!")
@@ -261,8 +306,11 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
     areatype_str, geoidfq_str = get_census_areatype_geoid_strings(geoid_lu_df, gvv_id)
 
     # exclude state code from query if ZCTA
-    if areatype_str not in ["place", "county"]:
+    if areatype_str == "zcta":
         url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&key={api_key}"
+    # separate list to get county and tract strings, include state FIPS code "02" for Alaska
+    elif areatype_str == "tract":
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str[1]}&in=state:02&in=county:{geoidfq_str[0]}&key={api_key}"
     # otherwise include state FIPS code "02" for Alaska
     else:
         url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={api_key}"
@@ -274,15 +322,21 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
             print("No response, check your URL")
         else:
             r_json = r.json()
+
     # convert to dataframe and reformat
     df = pd.DataFrame(r_json[1:], columns=r_json[0]).astype(float)
-    # rename geo column
-    geolist = ["place", "county", "zip code tabulation area"]
-    for c in df.columns:
-        if c in geolist:
-            df.rename(columns={c:"GEOID"}, inplace=True)
-        if c == "state":
-            df.drop(columns="state", inplace=True)
+    # rename geo column depending on areatype
+    if areatype_str == 'tract':
+        df['GEOID'] = df['county'] + df ['tract'] # concatenate columns to get standard 9 digit tract code
+        df.drop(columns="state", inplace=True)
+    else:
+        geolist = ["place", "county", "zip code tabulation area"]
+        for c in df.columns:
+            if c in geolist:
+                df.rename(columns={c:"GEOID"}, inplace=True)
+            if c == "state":
+                df.drop(columns="state", inplace=True)
+
     # use short names for variables columns if they exist in the dict
     new_cols_dict = {}
     for col in df.columns:
@@ -367,7 +421,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
             loc_results[short_name] = val
 
         # standardize locationid to match geoids for joining later on
-        # removes state FIPS for county and place, should not affect zip codes
+        # removes state FIPS for county, place, and tract; should not affect zip codes
         if locationid.startswith("02"):
             locationid = locationid[2:]
         results[locationid] = loc_results
