@@ -141,6 +141,7 @@ var_dict = {
                 "county":"https://data.cdc.gov/resource/swc5-untb.json",
                 "place":"https://data.cdc.gov/resource/eav7-hnsx.json",
                 "zcta":"https://data.cdc.gov/resource/qnzd-25i4.json",
+                "tract":"https://data.cdc.gov/resource/cwsq-ngmh.json",
             },
             "vars": {
                 "CASTHMA": {
@@ -186,6 +187,7 @@ var_dict = {
                 "county":"https://data.cdc.gov/resource/i6u4-y3g4.json",
                 "place":"https://data.cdc.gov/resource/edkk-ze78.json",
                 "zcta":"https://data.cdc.gov/resource/bumh-rgsq.json",
+                "tract":"https://data.cdc.gov/resource/e539-uadk.json",
             },
             "vars": {
                 "REMNRTY": {
