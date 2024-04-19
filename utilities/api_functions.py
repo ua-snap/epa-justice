@@ -326,10 +326,10 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
             base_url = var_dict["cdc"]["PLACES"]["url"][areatype_str]
             if areatype_str in ["county", "place"]:
                 data_val_type_str = var_dict["cdc"]["PLACES"]["vars"][var_str]["data_value_type_id"]
-                url = f"{base_url}?measureid={var_str}&datavaluetypeid={data_val_type_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&datavaluetypeid={data_val_type_str}&locationid={locationid}"
             else:
                 # do not specify data value type id... only crude prevalence is available for ZCTAs!
-                url = f"{base_url}?measureid={var_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
             
             with requests.get(url) as r:
                 if r.status_code != 200:
@@ -348,9 +348,9 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
         for var_str in var_dict["cdc"]["SDOH"]["vars"].keys():
             base_url = var_dict["cdc"]["SDOH"]["url"][areatype_str]
             if areatype_str in ["county", "place"]:
-                url = f"{base_url}?measureid={var_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
             else:
-                url = f"{base_url}?measureid={var_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
 
             with requests.get(url) as r:
                 if r.status_code != 200:
