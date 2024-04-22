@@ -77,8 +77,8 @@ def fetch_and_merge(geoid_lu_df, gvv_id, comment_dict):
     
     df['comment'] = ""
 
-    for index_, row in df.iterrows():
-        row['comment'] = comment_dict[row['id']]
+    for index, row in df.iterrows():
+        df.loc[index, 'comment'] = comment_dict[row['id']]
     
     return df
 
