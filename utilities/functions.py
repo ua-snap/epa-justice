@@ -1,10 +1,8 @@
 import requests
-import json
 import pandas as pd
 import numpy as np
 from multiprocessing.pool import Pool
 from utilities.luts import *
-
 
 
 def create_comment_dict(geoid_lu_df):
