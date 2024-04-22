@@ -289,7 +289,7 @@ def compute_cdc(cdc_data):
     return cdc_data
 
 
-def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
+def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df, print_url=False):
     """Fetch census data from their API. Using the census survey id, joins a base URL to a list of variable codes, area type, and GEOIDFQ(s),
     and requests the URL. Returns the JSON response. Print an error message if no response.
     
@@ -297,6 +297,7 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
         survey_id (str): census survey id, one of "dhc" or "acs5"
         gvvid (str): GVV ID used to look up associated GEOIDFQ(s) and fetch data
         geoid_lu_df (pandas.DataFrame): lookup table with GVV IDs and GEOIDFQs
+        print (bool): whether or not to print URLs for QC
     Returns:
         pandas.DataFrame
     """
@@ -315,6 +316,8 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
     else:
         url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={api_key}"
     
+    if print_url: print(f"Requesting US Census data from: {url}")
+
     # request the data, raise error if not returned
     with requests.get(url) as r:
         if r.status_code != 200:
@@ -324,11 +327,12 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
             r_json = r.json()
 
     # convert to dataframe and reformat
-    df = pd.DataFrame(r_json[1:], columns=r_json[0]).astype(float)
+    df = pd.DataFrame(r_json[1:], columns=r_json[0])
+
     # rename geo column depending on areatype
     if areatype_str == 'tract':
         df['GEOID'] = df['county'] + df ['tract'] # concatenate columns to get standard 9 digit tract code
-        df.drop(columns="state", inplace=True)
+        df.drop(columns=["state", "county", "tract"], inplace=True)
     else:
         geolist = ["place", "county", "zip code tabulation area"]
         for c in df.columns:
@@ -336,6 +340,13 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
                 df.rename(columns={c:"GEOID"}, inplace=True)
             if c == "state":
                 df.drop(columns="state", inplace=True)
+
+    # convert non-GEOID columns to floats, and change any negative data values to NA...
+    # -6666666 is a commonly used nodata value, but there may be others. Assume all positive values are valid.
+    for c in df.columns:
+        if c != "GEOID":
+            df[c] = df[c].astype(float)
+            df[c].where(df[c] > 0, np.nan, inplace=True)
 
     # use short names for variables columns if they exist in the dict
     new_cols_dict = {}
@@ -346,25 +357,22 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df):
         except:
             new_cols_dict[col]=col 
     df.rename(columns=new_cols_dict, inplace=True)
-    # change any negative data values to NA... -6666666 is a commonly used nodata value, but there may be others that are not negative
-    df.where(df >= 0, np.nan, inplace=True)
-    # convert geoid to string for easier joining later on
-    df["GEOID"] = df["GEOID"].astype(int).astype(str)
 
-    #TODO: compute tables based on survey id
+    # compute tables based on survey id
     if survey_id == "dhc":
         return compute_dhc(df)
     elif survey_id == "acs5":
         return compute_acs5(df)
 
 
-def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
+def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
     """Fetch CDC data from their API. Depending on the geography, joins a base URL to a individual variable codes and locationid(s),
     and requests the URL. Returns the JSON response. Print an error message if no response.
     
     Args:
         gvvid (str): GVV ID used to look up associated GEOIDFQ(s) and fetch data
         geoid_lu_df (pandas.DataFrame): lookup table with GVV IDs and GEOIDFQs
+        print (bool): whether or not to print URLs for QC
     Returns:
         pandas.DataFrame
     """
@@ -384,7 +392,9 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
             else:
                 # do not specify data value type id... only crude prevalence is available for ZCTAs!
                 url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
-            
+
+            if print_url: print(f"Requesting CDC data from: {url}")
+
             with requests.get(url) as r:
                 if r.status_code != 200:
                     #TODO: raise error
@@ -405,6 +415,8 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
                 url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
             else:
                 url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
+            
+            if print_url: print(f"Requesting CDC data from: {url}")
 
             with requests.get(url) as r:
                 if r.status_code != 200:
@@ -428,11 +440,13 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df):
 
         #convert to dataframe and reformat
         df = pd.DataFrame.from_dict(results, orient='index', )
-        # change any negative data values to NA... -6666666 is a commonly used nodata value, but there may be others that are not negative
+        # rename/reindex loc col
+        df.reset_index(names='locationid', inplace=True)       
+        # change any negative data values to NA
         # nodata values are also introduced above for any empty returns
-        df.where(df >= 0, np.nan, inplace=True)
-        # rename loc col
-        df.reset_index(names='locationid', inplace=True)
-        # drop any state FIPS prefix that occurs in the locationid column, for easier joining
+        for c in df.columns:
+            if c != "locationid":
+                df[c] = df[c].astype(float)
+                df[c].where(df[c] > 0, np.nan, inplace=True)
 
     return compute_cdc(df)
