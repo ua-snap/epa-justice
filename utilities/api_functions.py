@@ -5,12 +5,64 @@ import numpy as np
 from utilities.luts import *
 
 
-def fetch_and_merge(geoid_lu_df, gvv_id):
+def create_comment_dict(geoid_lu_df):
+    """Given the lookup table, create the comments based on actual table relationships.
+
+    Args:
+        geoid_lu_df (pandas.DataFrame): table with GVV IDs and associated GEOIDFQs, census places, and comments
+    Returns:
+        dictionary with GVV ID's as keys and comments as values
+    """
+    df = geoid_lu_df
+    comment_dict = {}
+
+    for index_, row in df.iterrows():
+        # exclude NaNs from commenting
+        if not isinstance(row['COMMENT'], float):
+
+            # deal with one-to-many tract situation first
+            if row['AREATYPE'] == 'Census tract':
+                # if >1 GVV place associated with this row, list place names (census tracts) in the comment
+                sub_df = df[df['name'] == row['name']]
+                if len(sub_df) > 1:
+                    tract_list = sub_df['PLACENAME'].tolist()
+                    if len(tract_list) == 2:
+                        tracts = (" and ").join(tract_list)
+                        comment = f"Data for this place represent multiple merged census tracts: {tracts}"
+                    elif len(tract_list) > 2:
+                        tract_list[-1] = str("and " + tract_list[-1])
+                        tracts = (", ").join(tract_list)
+                        comment = f"Data for this place represent multiple merged census tracts: {tracts}"
+            else:
+                sub_df = df[df['PLACENAME'] == row['PLACENAME']]
+                name_list = sub_df['name'].tolist()
+
+                if len(name_list) == 1:
+                    comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {name_list[0]}."
+                elif len(name_list) == 2:
+                    names = (" and ").join(name_list)
+                    comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {names}."
+                elif len(name_list) > 2:
+                    name_list[-1] = str("and " + name_list[-1])
+                    names = (", ").join(name_list)
+                    comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {names}."
+            
+            comment_dict[row['id']] = comment
+        
+        else:
+
+            comment_dict[row['id']] = ""
+    
+    return comment_dict
+                        
+
+def fetch_and_merge(geoid_lu_df, gvv_id, comment_dict):
     """Given the lookup table and GVV ID, fetches all data and merges the results into a dataframe.
 
     Args:
         geoid_lu_df (pandas.DataFrame): table with GVV IDs and associated GEOIDFQs
         gvv_id (str): GVV ID used to look up associated GEOIDFQ(s)
+        comment_dict (dictionary): dictionary with GVV ID's as keys and comments as values
     Returns:
         pandas.DataFrame
     """
@@ -23,7 +75,15 @@ def fetch_and_merge(geoid_lu_df, gvv_id):
         acs5, how="left", left_on="GEOID", right_on="GEOID").merge(
             cdc, how="left", left_on="GEOID", right_on="locationid")
     
+    df['comment'] = ""
+
+    for index_, row in df.iterrows():
+        row['comment'] = comment_dict[row['id']]
+    
     return df
+
+
+
 
 
 def get_standard_geoid_df(geoid_lu_df, gvv_id):
