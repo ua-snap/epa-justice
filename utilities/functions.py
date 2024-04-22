@@ -2,7 +2,9 @@ import requests
 import json
 import pandas as pd
 import numpy as np
+from multiprocessing.pool import Pool
 from utilities.luts import *
+
 
 
 def create_comment_dict(geoid_lu_df):
@@ -83,7 +85,29 @@ def fetch_and_merge(geoid_lu_df, gvv_id, comment_dict):
     return df
 
 
+def run_fetch_and_merge(geoid_lu_df):
+    """Use multiprocessing to run the fetch and merge functions.
+    Collected results will be concatenated.
 
+    Args:
+        geoid_lu_df (pandas.DataFrame): table with GVV IDs and associated GEOIDFQs, census places, and comments
+    Returns:
+        pandas.DataFrame
+    """
+    # create dict
+    comment_dict = create_comment_dict(geoid_lu_df)
+    # create a list of tuples to use as arguments in the fetch_and_merge() function
+    arg_tuples = []
+    for gvv_id in list(geoid_lu_df.id.unique()):
+        arg_tuple = geoid_lu_df, gvv_id, comment_dict
+        arg_tuples.append(arg_tuple)
+    # collect results from all tuple args    
+    results=[]
+    with Pool() as pool:
+        for result in pool.starmap(fetch_and_merge, arg_tuples):
+            results.append(result)
+    # concatenate results and return the dataframe
+    return pd.concat(results)
 
 
 def get_standard_geoid_df(geoid_lu_df, gvv_id):
