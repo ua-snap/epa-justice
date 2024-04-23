@@ -5,6 +5,18 @@ from multiprocessing.pool import Pool
 from utilities.luts import *
 
 
+def aggregate_results(results_df):
+    """Aggregates any one-to-many relationships in the final results table.
+    
+    Args:
+        results_df (pandas.DataFrame): concatenated dataframe result from the run_fetch_and_merge() function
+    Returns:
+        aggregated_df (pandas.DataFrame): dataframe with any one-to-many entries aggregated into one-to-one entries
+    """
+    
+
+
+
 def create_comment_dict(geoid_lu_df):
     """Given the lookup table, create the comments based on actual table relationships.
 
@@ -390,13 +402,13 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df, print_url=Fals
 
     # exclude state code from query if ZCTA
     if areatype_str == "zcta":
-        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&key={api_key}"
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&key={census_}"
     # separate list to get county and tract strings, include state FIPS code "02" for Alaska
     elif areatype_str == "tract":
-        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str[1]}&in=state:02&in=county:{geoidfq_str[0]}&key={api_key}"
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str[1]}&in=state:02&in=county:{geoidfq_str[0]}&key={census_}"
     # otherwise include state FIPS code "02" for Alaska
     else:
-        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={api_key}"
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={census_}"
     
     if print_url: print(f"Requesting US Census data from: {url}")
 
@@ -470,10 +482,10 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
             base_url = var_dict["cdc"]["PLACES"]["url"][areatype_str]
             if areatype_str in ["county", "place"]:
                 data_val_type_str = var_dict["cdc"]["PLACES"]["vars"][var_str]["data_value_type_id"]
-                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&datavaluetypeid={data_val_type_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&datavaluetypeid={data_val_type_str}&locationid={locationid}"
             else:
                 # do not specify data value type id... only crude prevalence is available for ZCTAs!
-                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
 
             if print_url: print(f"Requesting CDC data from: {url}")
 
@@ -494,9 +506,9 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         for var_str in var_dict["cdc"]["SDOH"]["vars"].keys():
             base_url = var_dict["cdc"]["SDOH"]["url"][areatype_str]
             if areatype_str in ["county", "place"]:
-                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
             else:
-                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
             
             if print_url: print(f"Requesting CDC data from: {url}")
 
