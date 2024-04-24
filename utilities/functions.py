@@ -5,15 +5,73 @@ from multiprocessing.pool import Pool
 from utilities.luts import *
 
 
-def aggregate_results(results_df):
+def aggregate_results(df):
     """Aggregates any one-to-many relationships in the final results table.
     
     Args:
-        results_df (pandas.DataFrame): concatenated dataframe result from the run_fetch_and_merge() function
+        df (pandas.DataFrame): concatenated dataframe result from the run_fetch_and_merge() function
     Returns:
-        aggregated_df (pandas.DataFrame): dataframe with any one-to-many entries aggregated into one-to-one entries
+        pandas.DataFrame with any one-to-many entries aggregated into one-to-one entries
     """
-    
+    # make sure GEOIDs are strings in order to list them with sum (instead of summing them as integers!)
+    df['GEOID'] = df['GEOID'].astype(str)
+
+    # create wrapper to concatenate strings for placename and GEOID columns
+    # this info will already be preserved in the comments, but also need to list in these columns to be more explicit
+    def concat_strings(x):
+        return (", ").join(x)
+
+    # create wrapper to use np.sum, or return NA if any NA values exist
+    def sum_no_nan(x):
+        if x.isna().any():
+            return np.nan
+        else:
+            return np.sum(x)
+        
+    # build an aggregation dict for all data columns
+    # use "first" for non-data columns, except use the custom function when aggregating placename and GEOID strings
+    # sum the actual data columns; they will be converted from pct to real population counts before summing
+    non_data_cols = ['id', 'name', 'areatype', 'placename', 'GEOID', 'comment']
+    agg_dict = {}
+
+    for col in df.columns:
+        if col in non_data_cols:
+            if col in ['placename', 'GEOID']:
+                agg_dict[col] = concat_strings
+            else:
+                agg_dict[col] = 'first'
+        else:
+            agg_dict[col] = sum_no_nan
+
+    # create list to collect results
+    agg_df_list = []
+
+    # list duplicated ids and names
+    dups = list(zip(df[df.duplicated(subset='id')]['id'].unique().tolist(), df[df.duplicated(subset='id')]['name'].unique().tolist()))
+    # iterate thru the list
+    for dup in dups:
+        print(f"Aggregating values for {dup[0]}: {dup[1]}")
+
+        # get duplicated rows, and compute population counts by row
+        sub_df = df[df['id'] == dup[0]]
+        for col in sub_df.columns:
+            if col != 'total_population' and col not in non_data_cols:
+                sub_df[col] = sub_df['total_population'] * sub_df[col] / 100
+
+        # in this version of sub_df, the columns are population counts and NOT percentages
+        # so now we can use groupby and aggregate the data columns according to the agg_dict functions
+        agg_df = sub_df.groupby('id').agg(agg_dict)
+
+        # convert back to percentages
+        for col in agg_df.columns:
+            if col != 'total_population' and col not in non_data_cols:
+                agg_df[col] = agg_df[col] / agg_df['total_population']  * 100
+
+        # drop the original duplicated rows and add the newly aggregated rows to agg_df_list
+        df.drop(df[df['id'] == dup[0]].index, inplace=True)
+        agg_df_list.append(agg_df)
+
+    return pd.concat([df, *agg_df_list])
 
 
 
@@ -87,8 +145,11 @@ def fetch_and_merge(geoid_lu_df, gvv_id, comment_dict):
         acs5, how="left", left_on="GEOID", right_on="GEOID").merge(
             cdc, how="left", left_on="GEOID", right_on="locationid")
     
+    # drop locationid column
+    df.drop(columns='locationid', inplace=True)
+    
+    # add comments column and populate from comment dictionary
     df['comment'] = ""
-
     for index, row in df.iterrows():
         df.loc[index, 'comment'] = comment_dict[row['id']]
     
