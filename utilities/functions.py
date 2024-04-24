@@ -35,7 +35,8 @@ def create_comment_dict(geoid_lu_df):
                         comment = f"Data for this place represent multiple merged census tracts: {tracts}"
                 # if only one tract associated with single GVV place, use standard comment
                 else:
-                    comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {name_list[0]}."
+                    name = sub_df['name'].tolist()[0]
+                    comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {name}."
 
             else:
                 sub_df = df[df['PLACENAME'] == row['PLACENAME']]
