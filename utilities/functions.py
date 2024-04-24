@@ -5,7 +5,7 @@ from multiprocessing.pool import Pool
 from utilities.luts import *
 
 
-def aggregate_results(df):
+def aggregate_results(results_df):
     """Aggregates any one-to-many relationships in the final results table.
     
     Args:
@@ -13,6 +13,9 @@ def aggregate_results(df):
     Returns:
         pandas.DataFrame with any one-to-many entries aggregated into one-to-one entries
     """
+    # reset index just in case there are duplicate indices
+    df = results_df.reset_index(drop=True)
+
     # make sure GEOIDs are strings in order to list them with sum (instead of summing them as integers!)
     df['GEOID'] = df['GEOID'].astype(str)
 
@@ -71,7 +74,10 @@ def aggregate_results(df):
         df.drop(df[df['id'] == dup[0]].index, inplace=True)
         agg_df_list.append(agg_df)
 
-    return pd.concat([df, *agg_df_list])
+        out_df = pd.concat([df, *agg_df_list])
+        out_df.reset_index(drop=True, inplace=True)
+
+    return out_df
 
 
 
