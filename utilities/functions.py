@@ -68,7 +68,7 @@ def aggregate_results(results_df):
         # convert back to percentages
         for col in agg_df.columns:
             if col != 'total_population' and col not in non_data_cols:
-                agg_df[col] = agg_df[col] / agg_df['total_population']  * 100
+                agg_df[col] = round((agg_df[col] / agg_df['total_population']  * 100), 2)
 
         # drop the original duplicated rows and add the newly aggregated rows to agg_df_list
         df.drop(df[df['id'] == dup[0]].index, inplace=True)
