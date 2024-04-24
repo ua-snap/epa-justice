@@ -98,7 +98,7 @@ def create_comment_dict(geoid_lu_df):
 
             # deal with one-to-many tract situation first
             if row['AREATYPE'] == 'Census tract':
-                # if >1 GVV place associated with this row, list place names (census tracts) in the comment
+                # if >1 tract associated with single GVV place, list tracts in the comment
                 sub_df = df[df['name'] == row['name']]
                 if len(sub_df) > 1:
                     tract_list = sub_df['PLACENAME'].tolist()
@@ -109,6 +109,11 @@ def create_comment_dict(geoid_lu_df):
                         tract_list[-1] = str("and " + tract_list[-1])
                         tracts = (", ").join(tract_list)
                         comment = f"Data for this place represent multiple merged census tracts: {tracts}"
+                # if only one tract associated with single GVV place, use standard comment
+                else:
+                    comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {name_list[0]}."
+
+
             else:
                 sub_df = df[df['PLACENAME'] == row['PLACENAME']]
                 name_list = sub_df['name'].tolist()
