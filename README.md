@@ -19,7 +19,7 @@ This repo also contains additional processing tools that were used for adding ne
 
 ## Data Dictionary
 
-The data variables below are pulled for each geography. The `short name` column is the abbreviated name used in the exported `data_to_export.csv`. All other column names should be self explanatory. **Note that the `data_to_export.csv` table may contain "one to many" relationships, where multiple rows of data exist for a single place `id`. These data will need to be aggregated in future work.**
+The data variables below are pulled for each geography. The `short name` column is the abbreviated name used in the exported `data_to_export.csv`. All other column names should be self explanatory.
 
 ### Census DHC Year 2020 - Raw data
 
