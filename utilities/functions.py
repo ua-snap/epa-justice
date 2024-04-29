@@ -430,15 +430,15 @@ def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
 def compute_dhc(dhc_data):
     """Compute the population percentages for different age group combinations, and return the computed columns.
     This function makes a lot of assumptions about columns names; any revisions to the short names in luts.py will require changes here too."""
-    #dhc_data['total_population'] = dhc_data['total_male'] + dhc_data['total_female']
-    dhc_data['m_under_18'] = dhc_data['m_under_5'] + dhc_data['m_5_to_9'] + dhc_data['m_10_to_14'] + dhc_data['m_15_to_17']
-    dhc_data['f_under_18'] = dhc_data['f_under_5'] + dhc_data['f_5_to_9'] + dhc_data['f_10_to_14'] + dhc_data['f_15_to_17']
-    dhc_data['total_under_18'] = dhc_data['m_under_18'] + dhc_data['f_under_18']
-    dhc_data['m_65_plus'] = dhc_data['m_65_to_66'] + dhc_data['m_67_to_69'] + dhc_data['m_70_to_74'] + dhc_data['m_75_to_79'] + dhc_data['m_80_to_84'] + dhc_data['m_85_plus']
-    dhc_data['f_65_plus'] = dhc_data['f_65_to_66'] + dhc_data['f_67_to_69'] + dhc_data['f_70_to_74'] + dhc_data['f_75_to_79'] + dhc_data['f_80_to_84'] + dhc_data['f_85_plus']
-    dhc_data['total_65_plus'] = dhc_data['m_65_plus'] + dhc_data['f_65_plus']
-    dhc_data['pct_65_plus'] = round(dhc_data['total_65_plus']/dhc_data['total_population']*100,2)
-    dhc_data['pct_under_18'] = round(dhc_data['total_under_18']/dhc_data['total_population']*100,2)
+    #dhc_data['total_population'] = dhc_data[['total_male', 'total_female']].sum(skipna=True, min_count=1)
+    dhc_data['m_under_18'] = dhc_data[['m_under_5', 'm_5_to_9', 'm_10_to_14', 'm_15_to_17']].sum(skipna=True, min_count=1)
+    dhc_data['f_under_18'] = dhc_data[['f_under_5', 'f_5_to_9', 'f_10_to_14', 'f_15_to_17']].sum(skipna=True, min_count=1)
+    dhc_data['total_under_18'] = dhc_data[['m_under_18', 'f_under_18']].sum(skipna=True, min_count=1)
+    dhc_data['m_65_plus'] = dhc_data[['m_65_to_66', 'm_67_to_69', 'm_70_to_74', 'm_75_to_79', 'm_80_to_84', 'm_85_plus']].sum(skipna=True, min_count=1)
+    dhc_data['f_65_plus'] = dhc_data[['f_65_to_66', 'f_67_to_69', 'f_70_to_74', 'f_75_to_79', 'f_80_to_84', 'f_85_plus']].sum(skipna=True, min_count=1)
+    dhc_data['total_65_plus'] = dhc_data[['m_65_plus', 'f_65_plus']].sum(skipna=True, min_count=1)
+    dhc_data['pct_65_plus'] = round(dhc_data['total_65_plus']/dhc_data['total_population']*100,2) # dividing NaN or by Nan will produce NaN... no need to specify
+    dhc_data['pct_under_18'] = round(dhc_data['total_under_18']/dhc_data['total_population']*100,2) # dividing NaN or by Nan will produce NaN... no need to specify
 
     return dhc_data[['GEOID', 'total_population', 'pct_65_plus', 'pct_under_18']]
 
