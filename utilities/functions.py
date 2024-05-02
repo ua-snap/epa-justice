@@ -460,7 +460,7 @@ def compute_dhc(dhc_data):
                      'pct_african_american',
                      'pct_amer_indian_ak_native',
                      'pct_asian',
-                     'hawaiian_pacislander',
+                     'pct_hawaiian_pacislander',
                      'pct_other',
                      'pct_multi',
                      ]]
