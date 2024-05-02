@@ -430,7 +430,9 @@ def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
 def compute_dhc(dhc_data):
     """Compute the population percentages for different age group combinations, and return the computed columns.
     This function makes a lot of assumptions about columns names; any revisions to the short names in luts.py will require changes here too."""
-    #dhc_data['total_population'] = dhc_data[['total_male', 'total_female']].sum(skipna=False)
+    
+    # sex by age variables
+    #dhc_data['total_population'] = dhc_data[['total_male', 'total_female']].sum(axis=1, skipna=False)
     dhc_data['m_under_18'] = dhc_data[['m_under_5', 'm_5_to_9', 'm_10_to_14', 'm_15_to_17']].sum(axis=1, skipna=False)
     dhc_data['f_under_18'] = dhc_data[['f_under_5', 'f_5_to_9', 'f_10_to_14', 'f_15_to_17']].sum(axis=1, skipna=False)
     dhc_data['total_under_18'] = dhc_data[['m_under_18', 'f_under_18']].sum(axis=1, skipna=False)
@@ -439,8 +441,29 @@ def compute_dhc(dhc_data):
     dhc_data['total_65_plus'] = dhc_data[['m_65_plus', 'f_65_plus']].sum(axis=1, skipna=False)
     dhc_data['pct_65_plus'] = round(dhc_data['total_65_plus']/dhc_data['total_population']*100,2) # dividing NaN or by Nan will produce NaN... no need to specify
     dhc_data['pct_under_18'] = round(dhc_data['total_under_18']/dhc_data['total_population']*100,2) # dividing NaN or by Nan will produce NaN... no need to specify
+    # race / ethnicity variables
+    dhc_data['pct_hispanic_latino'] = round(dhc_data['hispanic_latino']/dhc_data['total_p9']*100,2)
+    dhc_data['pct_white'] = round(dhc_data['white']/dhc_data['total_p9']*100,2)
+    dhc_data['pct_african_american'] = round(dhc_data['african_american']/dhc_data['total_p9']*100,2)
+    dhc_data['pct_amer_indian_ak_native'] = round(dhc_data['amer_indian_ak_native']/dhc_data['total_p9']*100,2)
+    dhc_data['pct_asian'] = round(dhc_data['asian']/dhc_data['total_p9']*100,2)
+    dhc_data['pct_hawaiin_pacislander'] = round(dhc_data['hawaiin_pacislander']/dhc_data['total_p9']*100,2)
+    dhc_data['pct_other'] = round(dhc_data['other']/dhc_data['total_p9']*100,2)
+    dhc_data['pct_multi'] = round(dhc_data['multi']/dhc_data['total_p9']*100,2)
 
-    return dhc_data[['GEOID', 'total_population', 'pct_65_plus', 'pct_under_18']]
+    return dhc_data[['GEOID', 
+                     'total_population', 
+                     'pct_65_plus', 
+                     'pct_under_18', 
+                     'pct_hispanic_latino',
+                     'pct_white',
+                     'pct_african_american',
+                     'pct_amer_indian_ak_native',
+                     'pct_asian',
+                     'hawaiian_pacislander',
+                     'pct_other',
+                     'pct_multi',
+                     ]]
 
 
 def compute_acs5(acs5_data):
