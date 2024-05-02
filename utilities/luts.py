@@ -131,7 +131,7 @@ var_dict = {
             },
             "P9_009N": {
                 "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Native Hawaiian and Other Pacific Islander alone",
-                "short_name": "hawaiin_pacislander",
+                "short_name": "hawaiian_pacislander",
             },
             "P9_010N": {
                 "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Some Other Race alone",
