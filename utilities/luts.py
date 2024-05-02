@@ -1,7 +1,7 @@
-#census API key
+# census API key
 census_ = "839fc96162a9e16e7896434e7592eccaf7938706"
 
-#CDC app token
+# CDC app token
 cdc_ = "aBj1zOdJs530ivzSUlyOHkLaf"
 
 var_dict = {
@@ -10,7 +10,7 @@ var_dict = {
         "vars": {
             # total
             "P12_001N": {
-                "long_name": "!!Total:", # total from P12 table only: SEX BY AGE FOR SELECTED AGE CATEGORIES
+                "long_name": "!!Total:",  # total from P12 table only: SEX BY AGE FOR SELECTED AGE CATEGORIES
                 "short_name": "total_population",
             },
             # male and female totals
@@ -106,7 +106,7 @@ var_dict = {
             },
             # race / ethnicity
             "P9_001N": {
-                "long_name": "!!Total", # total from P9 table only: HISPANIC OR LATINO, AND NOT HISPANIC OR LATINO BY RACE
+                "long_name": "!!Total",  # total from P9 table only: HISPANIC OR LATINO, AND NOT HISPANIC OR LATINO BY RACE
                 "short_name": "total_p9",
             },
             "P9_002N": {
@@ -144,7 +144,7 @@ var_dict = {
         },
     },
     "acs5": {
-        "url": "https://api.census.gov/data/2020/acs/acs5/subject",# note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
+        "url": "https://api.census.gov/data/2020/acs/acs5/subject",  # note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
         "vars": {
             "S1810_C03_001E": {
                 "long_name": "Percent with a disability!!Estimate!!Total civilian noninstitutionalized population",
@@ -173,12 +173,12 @@ var_dict = {
         },
     },
     "cdc": {
-        "PLACES":{
-            "url":{
-                "county":"https://data.cdc.gov/resource/swc5-untb.json",
-                "place":"https://data.cdc.gov/resource/eav7-hnsx.json",
-                "zcta":"https://data.cdc.gov/resource/qnzd-25i4.json",
-                "tract":"https://data.cdc.gov/resource/cwsq-ngmh.json",
+        "PLACES": {
+            "url": {
+                "county": "https://data.cdc.gov/resource/swc5-untb.json",
+                "place": "https://data.cdc.gov/resource/eav7-hnsx.json",
+                "zcta": "https://data.cdc.gov/resource/qnzd-25i4.json",
+                "tract": "https://data.cdc.gov/resource/cwsq-ngmh.json",
             },
             "vars": {
                 "CASTHMA": {
@@ -219,12 +219,12 @@ var_dict = {
                 },
             },
         },
-        "SDOH":{
-            "url":{
-                "county":"https://data.cdc.gov/resource/i6u4-y3g4.json",
-                "place":"https://data.cdc.gov/resource/edkk-ze78.json",
-                "zcta":"https://data.cdc.gov/resource/bumh-rgsq.json",
-                "tract":"https://data.cdc.gov/resource/e539-uadk.json",
+        "SDOH": {
+            "url": {
+                "county": "https://data.cdc.gov/resource/i6u4-y3g4.json",
+                "place": "https://data.cdc.gov/resource/edkk-ze78.json",
+                "zcta": "https://data.cdc.gov/resource/bumh-rgsq.json",
+                "tract": "https://data.cdc.gov/resource/e539-uadk.json",
             },
             "vars": {
                 "REMNRTY": {
