@@ -447,7 +447,7 @@ def compute_dhc(dhc_data):
     dhc_data['pct_african_american'] = round(dhc_data['african_american']/dhc_data['total_p9']*100,2)
     dhc_data['pct_amer_indian_ak_native'] = round(dhc_data['amer_indian_ak_native']/dhc_data['total_p9']*100,2)
     dhc_data['pct_asian'] = round(dhc_data['asian']/dhc_data['total_p9']*100,2)
-    dhc_data['pct_hawaiin_pacislander'] = round(dhc_data['hawaiin_pacislander']/dhc_data['total_p9']*100,2)
+    dhc_data['pct_hawaiian_pacislander'] = round(dhc_data['hawaiian_pacislander']/dhc_data['total_p9']*100,2)
     dhc_data['pct_other'] = round(dhc_data['other']/dhc_data['total_p9']*100,2)
     dhc_data['pct_multi'] = round(dhc_data['multi']/dhc_data['total_p9']*100,2)
 
