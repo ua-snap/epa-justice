@@ -48,12 +48,31 @@ The data variables below are pulled for each geography. The `short name` column 
 | P12_047N | !!Total:!!Female:!!75 to 79 years: SEX BY AGE FOR SELECTED AGE CATEGORIES | f_75_to_79 |
 | P12_048N | !!Total:!!Female:!!80 to 84 years: SEX BY AGE FOR SELECTED AGE CATEGORIES | f_80_to_84 |
 | P12_049N | !!Total:!!Female:!!85 years and over: SEX BY AGE FOR SELECTED AGE CATEGORIES | f_85_plus |
+| P9_001N | !!Total | total_p9 |
+| P9_002N | !!Total:!!Hispanic or Latino | hispanic_latino |
+| P9_005N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!White alone | white |
+| P9_006N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!Black or African American alone | african_american | 
+| P9_007N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!American Indian and Alaska Native alone | amer_indian_ak_native |
+| P9_008N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!Asian alone | asian |
+| P9_009N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!Native Hawaiian and Other Pacific Islander alone | hawaiian_pacislander |
+| P9_010N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!Some Other Race alone | other |
+| P9_011N | !!Total:!!Not Hispanic or Latino:!!Population of two or more races: | multi |
+
 
 ### Census DHC Year 2020 - Calculated from raw data
 | Variable ID | long name | short name
 | -------- | ------- | ------ |
 | NA | Percentage of population 65 and older| pct_65_plus |
 | NA | Percentage of population under age 18 | pct_under_18 |
+| NA | Percentage of population Hispanic or Latino | pct_hispanic_latino |
+| NA | Percentage of population White | pct_white |
+| NA | Percentage of population African American | pct_african_american |
+| NA | Percentage of population American Indian or Alaska Native | pct_amer_indian_ak_native |
+| NA | Percentage of population Asian | pct_asian |
+| NA | Percentage of population Native Hawaiian and Pacific Islander | pct_hawaiian_pacislander |
+| NA | Percentage of population Other Race | pct_other |
+| NA | Percentage of population Two or More Races | pct_multi |
+
 
 ### Census ACS 5-year Year 2023
 | Variable ID | long name | short name

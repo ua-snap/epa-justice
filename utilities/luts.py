@@ -126,7 +126,7 @@ var_dict = {
                 "short_name": "amer_indian_ak_native",
             },
             "P9_008N": {
-                "long_name": "!Total:!!Not Hispanic or Latino:!!Population of one race:!!Asian alone",
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Asian alone",
                 "short_name": "asian",
             },
             "P9_009N": {
@@ -138,7 +138,7 @@ var_dict = {
                 "short_name": "other",
             },
             "P9_011N": {
-                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of two or more races:",
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of two or more races",
                 "short_name": "multi",
             },
         },
