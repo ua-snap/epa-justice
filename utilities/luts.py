@@ -10,7 +10,7 @@ var_dict = {
         "vars": {
             # total
             "P12_001N": {
-                "long_name": "!!Total:",
+                "long_name": "!!Total:", # total from P12 table only: SEX BY AGE FOR SELECTED AGE CATEGORIES
                 "short_name": "total_population",
             },
             # male and female totals
@@ -103,6 +103,43 @@ var_dict = {
             "P12_049N": {
                 "long_name": "!!Total:!!Female:!!85 years and over: SEX BY AGE FOR SELECTED AGE CATEGORIES",
                 "short_name": "f_85_plus",
+            },
+            # race / ethnicity
+            "P9_001N": {
+                "long_name": "!!Total", # total from P9 table only: HISPANIC OR LATINO, AND NOT HISPANIC OR LATINO BY RACE
+                "short_name": "total_p9",
+            },
+            "P9_002N": {
+                "long_name": "!!Total:!!Hispanic or Latino",
+                "short_name": "hispanic_latino",
+            },
+            "P9_005N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!White alone",
+                "short_name": "white",
+            },
+            "P9_006N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Black or African American alone",
+                "short_name": "african_american",
+            },
+            "P9_007N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!American Indian and Alaska Native alone",
+                "short_name": "amer_indian_ak_native",
+            },
+            "P9_008N": {
+                "long_name": "!Total:!!Not Hispanic or Latino:!!Population of one race:!!Asian alone",
+                "short_name": "asian",
+            },
+            "P9_009N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Native Hawaiian and Other Pacific Islander alone",
+                "short_name": "hawaiin_pacislander",
+            },
+            "P9_010N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Some Other Race alone",
+                "short_name": "other",
+            },
+            "P9_011N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of two or more races:",
+                "short_name": "multi",
             },
         },
     },
