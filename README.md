@@ -11,9 +11,9 @@ This repo accesses US Census datasets via their survey-specific API endpoints ([
 
 ## Processing instructions
 
-- Create a `conda` environment using the `environment.yml` file.
-- Use the `fetch_data_and_export.ipynb` notebook to run the processing pipeline. This notebook also contains some tests of individual functions that can be used for QC.
-- View the `data_to_export.csv` results
+- Activate a `conda` environment that includes `pandas` (>2.0) and `numpy`.
+- Use the `fetch_data_and_export.ipynb` notebook to run the processing pipeline. (This notebook also contains some tests of individual functions used for review during development.)
+- View the `data_to_export.csv` results.
 
 This repo also contains additional processing tools that were used for adding new places to the [GVV repo](https://github.com/ua-snap/geospatial-vector-veracity) that were required for this specific project (`update_NCR_points.ipynb`, `add_to_NCR.csv`,   `alaska_point_locations.csv`, and `add_point_location.py`). These shouldn't need to be run again, but are saved here for now in case the project scope changes and more places need to be added.
 
