@@ -180,6 +180,9 @@ def run_fetch_and_merge(geoid_lu_df):
     Returns:
         pandas.DataFrame
     """
+    #TODO: add rows for state of Alaska and entire US
+    # geoid_lu_df = add_ak_us(geoid_lu_df)
+
     # create dict
     comment_dict = create_comment_dict(geoid_lu_df)
     # create a list of tuples to use as arguments in the fetch_and_merge() function
@@ -194,6 +197,23 @@ def run_fetch_and_merge(geoid_lu_df):
             results.append(result)
     # concatenate results and return the dataframe
     return pd.concat(results)
+
+
+def add_ak_us(df):
+    """Adds rows to the GVV lookup table for state of Alaska and entire US.
+    Args:
+        geoid_lu_df (pandas.DataFrame): table with GVV IDs and associated GEOIDFQs, census places, and comments
+    Returns:
+        pandas.DataFrame
+    """
+    # fields are: id,name,alt_name,region,country,latitude,longitude,type,GEOIDFQ,PLACENAME,AREATYPE,COMMENT
+    ak_row = ['AK0', 'Alaska', '', '', '', '', '', '', "0400000US02", "Alaska", "State", '']
+    us_row = ['US0', 'United States', '', '', '', '', '', '', "0100000US", "united States", "Nation", '']
+
+    df.loc[len(df.index)] = ak_row
+    df.loc[len(df.index)] = us_row
+
+    return df
 
 
 def get_standard_geoid_df(geoid_lu_df, gvv_id):
@@ -226,6 +246,11 @@ def get_standard_geoid_df(geoid_lu_df, gvv_id):
             areatype_str = "zcta"
         elif areatypes[0] == "Census tract":
             areatype_str = "tract"
+        #TODO: incorporate state and us level querys
+        # elif areatypes[0] == "State":
+        #     areatype_str = "state"
+        # elif areatypes[0] == "Nation":
+        #     areatype_str = "us"
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
@@ -265,6 +290,14 @@ def get_standard_geoid_df(geoid_lu_df, gvv_id):
         elif areatype_str == "tract":
             # get last 7 digits for county FIPS code + tract code
             geoid_list = [geoidfqs[0][-9:]]
+        #TODO: incorporate state and us level querys
+        # elif areatype_str == "state": 
+        #     # return 2 digit AK FIPs code
+        #     geoid_list = ["02"]
+        # elif areatype_str == "us": 
+        #     # return 2 digit country code
+        #     geoid_list = ["01"]
+        
 
     else:
         # TODO: raise an error
@@ -301,6 +334,11 @@ def get_cdc_areatype_locationid_list(geoid_lu_df, gvv_id):
             areatype_str = "zcta"
         elif areatypes[0] == "Census tract":
             areatype_str = "tract"
+        #TODO: confirm that there is no CDC PLACES/SDOH data at state or US level
+        # elif areatypes[0] == "State":
+        #     areatype_str = "state"
+        # elif areatypes[0] == "Nation":
+        #     areatype_str = "us"
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
@@ -341,7 +379,13 @@ def get_cdc_areatype_locationid_list(geoid_lu_df, gvv_id):
         elif areatype_str == "tract":
             # get last 11 digits as state FIPS + county FIPS code + tract code
             locationid_list = [geoidfqs[0][-11:]]
-
+        #TODO: confirm that there is no CDC PLACES/SDOH data at state or US level
+        # elif areatype_str == "state": 
+        #     # return 2 digit AK FIPs code
+        #     locationid_list = ["02"]
+        # elif areatype_str == "us": 
+        #     # return 2 digit country code
+        #     locationid_list = ["01"]
     else:
         # TODO: raise an error
         print("no associated GEOIDFQs found!")
@@ -372,6 +416,11 @@ def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
             areatype_str = "zip%20code%20tabulation%20area"
         elif areatypes[0] == "Census tract":
             areatype_str = "tract"
+        #TODO: incorporate state and us level querys
+        # elif areatypes[0] == "State":
+        #     areatype_str = "state"
+        # elif areatypes[0] == "Nation":
+        #     areatype_str = "us"
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
@@ -423,6 +472,13 @@ def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
             tract_geoid = geoidfqs[0][-6:]
             # return as list: tract is a special case that will be checked for in fetch_census_data_and_compute()
             geoidfq_str = [county_geoid, tract_geoid]
+        #TODO: incorporate state and us level querys
+        # elif areatype_str == "state": 
+        #     # return 2 digit AK FIPs code
+        #     geoid_list = ["02"]
+        # elif areatype_str == "us": 
+        #     # return 2 digit country code
+        #     geoid_list = ["01"]
 
     else:
         # TODO: raise an error
