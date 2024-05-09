@@ -683,16 +683,16 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         if areatype_str == "state": loc_id = "02"
         elif areatype_str == "us": loc_id = "1"
         empty_row = {"locationid":loc_id,
-            "CASTHMA":[np.nan],
-            "COPD":[np.nan],
-            "CHD":[np.nan],
-            "STROKE":[np.nan],
-            "DIABETES":[np.nan],
-            "KIDNEY":[np.nan],
-            "REMNRTY":[np.nan],
-            "NOHSDP":[np.nan],
-            "POV150":[np.nan],
-            "BROAD":[np.nan],
+            "pct_asthma":[np.nan],
+            "pct_copd":[np.nan],
+            "pct_hd":[np.nan],
+            "pct_stroke":[np.nan],
+            "pct_diabetes":[np.nan],
+            "pct_kd":[np.nan],
+            "pct_minority":[np.nan],
+            "pct_no_hsdiploma":[np.nan],
+            "pct_below_150pov":[np.nan],
+            "pct_no_bband":[np.nan],
             }
         return compute_cdc(pd.DataFrame.from_dict(empty_row))
 
