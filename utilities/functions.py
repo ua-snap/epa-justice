@@ -5,6 +5,86 @@ from multiprocessing.pool import Pool
 from utilities.luts import *
 
 
+def aggregate_results(results_df):
+    """Aggregates any one-to-many relationships in the final results table.
+
+    Args:
+        df (pandas.DataFrame): concatenated dataframe result from the run_fetch_and_merge() function
+    Returns:
+        pandas.DataFrame with any one-to-many entries aggregated into one-to-one entries
+    """
+    # reset index just in case there are duplicate indices
+    df = results_df.reset_index(drop=True)
+
+    # make sure GEOIDs are strings in order to list them with sum (instead of summing them as integers!)
+    df["GEOID"] = df["GEOID"].astype(str)
+
+    # create wrapper to concatenate strings for placename and GEOID columns
+    # this info will already be preserved in the comments, but also need to list in these columns to be more explicit
+    def concat_strings(x):
+        return (", ").join(x)
+
+    # create wrapper to use np.sum, or return NA if any NA values exist
+    def sum_no_nan(x):
+        if x.isna().any():
+            return np.nan
+        else:
+            return np.sum(x)
+
+    # build an aggregation dict for all data columns
+    # use "first" for non-data columns, except use the custom function when aggregating placename and GEOID strings
+    # sum the actual data columns; they will be converted from pct to real population counts before summing
+    non_data_cols = ["id", "name", "areatype", "placename", "GEOID", "comment"]
+    agg_dict = {}
+
+    for col in df.columns:
+        if col in non_data_cols:
+            if col in ["placename", "GEOID"]:
+                agg_dict[col] = concat_strings
+            else:
+                agg_dict[col] = "first"
+        else:
+            agg_dict[col] = sum_no_nan
+
+    # create list to collect results
+    agg_df_list = []
+
+    # list duplicated ids and names
+    dups = list(
+        zip(
+            df[df.duplicated(subset="id")]["id"].unique().tolist(),
+            df[df.duplicated(subset="id")]["name"].unique().tolist(),
+        )
+    )
+    # iterate thru the list
+    for dup in dups:
+        print(f"Aggregating values for {dup[0]}: {dup[1]}")
+
+        # get duplicated rows, and compute population counts by row
+        sub_df = df[df["id"] == dup[0]]
+        for col in sub_df.columns:
+            if col != "total_population" and col not in non_data_cols:
+                sub_df[col] = sub_df["total_population"] * sub_df[col] / 100
+
+        # in this version of sub_df, the columns are population counts and NOT percentages
+        # so now we can use groupby and aggregate the data columns according to the agg_dict functions
+        agg_df = sub_df.groupby("id").agg(agg_dict)
+
+        # convert back to percentages
+        for col in agg_df.columns:
+            if col != "total_population" and col not in non_data_cols:
+                agg_df[col] = round((agg_df[col] / agg_df["total_population"] * 100), 2)
+
+        # drop the original duplicated rows and add the newly aggregated rows to agg_df_list
+        df.drop(df[df["id"] == dup[0]].index, inplace=True)
+        agg_df_list.append(agg_df)
+
+        out_df = pd.concat([df, *agg_df_list])
+        out_df.reset_index(drop=True, inplace=True)
+
+    return out_df
+
+
 def create_comment_dict(geoid_lu_df):
     """Given the lookup table, create the comments based on actual table relationships.
 
@@ -18,14 +98,13 @@ def create_comment_dict(geoid_lu_df):
 
     for index_, row in df.iterrows():
         # exclude NaNs from commenting
-        if not isinstance(row['COMMENT'], float):
-
+        if not isinstance(row["COMMENT"], float):
             # deal with one-to-many tract situation first
-            if row['AREATYPE'] == 'Census tract':
-                # if >1 GVV place associated with this row, list place names (census tracts) in the comment
-                sub_df = df[df['name'] == row['name']]
+            if row["AREATYPE"] == "Census tract":
+                # if >1 tract associated with single GVV place, list tracts in the comment
+                sub_df = df[df["name"] == row["name"]]
                 if len(sub_df) > 1:
-                    tract_list = sub_df['PLACENAME'].tolist()
+                    tract_list = sub_df["PLACENAME"].tolist()
                     if len(tract_list) == 2:
                         tracts = (" and ").join(tract_list)
                         comment = f"Data for this place represent multiple merged census tracts: {tracts}"
@@ -35,12 +114,12 @@ def create_comment_dict(geoid_lu_df):
                         comment = f"Data for this place represent multiple merged census tracts: {tracts}"
                 # if only one tract associated with single GVV place, use standard comment
                 else:
-                    name = sub_df['name'].tolist()[0]
+                    name = sub_df["name"].tolist()[0]
                     comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {name}."
 
             else:
-                sub_df = df[df['PLACENAME'] == row['PLACENAME']]
-                name_list = sub_df['name'].tolist()
+                sub_df = df[df["PLACENAME"] == row["PLACENAME"]]
+                name_list = sub_df["name"].tolist()
 
                 if len(name_list) == 1:
                     comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {name_list[0]}."
@@ -51,15 +130,14 @@ def create_comment_dict(geoid_lu_df):
                     name_list[-1] = str("and " + name_list[-1])
                     names = (", ").join(name_list)
                     comment = f"Data represent information from nearest {row['AREATYPE'].lower()} ({row['PLACENAME']}), which includes {names}."
-            
-            comment_dict[row['id']] = comment
-        
-        else:
 
-            comment_dict[row['id']] = ""
-    
+            comment_dict[row["id"]] = comment
+
+        else:
+            comment_dict[row["id"]] = ""
+
     return comment_dict
-                        
+
 
 def fetch_and_merge(geoid_lu_df, gvv_id, comment_dict):
     """Given the lookup table and GVV ID, fetches all data and merges the results into a dataframe.
@@ -76,15 +154,20 @@ def fetch_and_merge(geoid_lu_df, gvv_id, comment_dict):
     acs5 = fetch_census_data_and_compute("acs5", gvv_id, geoid_lu_df)
     cdc = fetch_cdc_data_and_compute(gvv_id, geoid_lu_df)
 
-    df = geoids.merge(dhc, how="left", left_on="GEOID", right_on="GEOID").merge(
-        acs5, how="left", left_on="GEOID", right_on="GEOID").merge(
-            cdc, how="left", left_on="GEOID", right_on="locationid")
-    
-    df['comment'] = ""
+    df = (
+        geoids.merge(dhc, how="left", left_on="GEOID", right_on="GEOID")
+        .merge(acs5, how="left", left_on="GEOID", right_on="GEOID")
+        .merge(cdc, how="left", left_on="GEOID", right_on="locationid")
+    )
 
+    # drop locationid column
+    df.drop(columns="locationid", inplace=True)
+
+    # add comments column and populate from comment dictionary
+    df["comment"] = ""
     for index, row in df.iterrows():
-        df.loc[index, 'comment'] = comment_dict[row['id']]
-    
+        df.loc[index, "comment"] = comment_dict[row["id"]]
+
     return df
 
 
@@ -104,8 +187,8 @@ def run_fetch_and_merge(geoid_lu_df):
     for gvv_id in list(geoid_lu_df.id.unique()):
         arg_tuple = geoid_lu_df, gvv_id, comment_dict
         arg_tuples.append(arg_tuple)
-    # collect results from all tuple args    
-    results=[]
+    # collect results from all tuple args
+    results = []
     with Pool() as pool:
         for result in pool.starmap(fetch_and_merge, arg_tuples):
             results.append(result)
@@ -124,62 +207,62 @@ def get_standard_geoid_df(geoid_lu_df, gvv_id):
         pandas.DataFrame
     """
     # list GVV IDs & names (they should be dups if >1)
-    gvv_ids = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['id'].to_list()
-    gvv_names = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['name'].to_list()
+    gvv_ids = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["id"].to_list()
+    gvv_names = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["name"].to_list()
     # list census area placename, areatype, and geoidfqs (should be unique if >1)
-    placenames = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['PLACENAME'].to_list()
-    areatypes = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['AREATYPE'].to_list()
-    geoidfqs = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['GEOIDFQ'].to_list()
+    placenames = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["PLACENAME"].to_list()
+    areatypes = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["AREATYPE"].to_list()
+    geoidfqs = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["GEOIDFQ"].to_list()
 
     if len(areatypes) == 0:
         # TODO: raise an error
         print("no associated AREATYPE found!")
     else:
-        if areatypes[0] == 'County':
-            areatype_str = 'county'
-        elif areatypes[0] in ['Census designated place', 'Incorporated place']:
-            areatype_str = 'place'
-        elif areatypes[0] == 'ZCTA':
-            areatype_str = 'zcta'
-        elif areatypes[0] == 'Census tract':
-            areatype_str = 'tract'
+        if areatypes[0] == "County":
+            areatype_str = "county"
+        elif areatypes[0] in ["Census designated place", "Incorporated place"]:
+            areatype_str = "place"
+        elif areatypes[0] == "ZCTA":
+            areatype_str = "zcta"
+        elif areatypes[0] == "Census tract":
+            areatype_str = "tract"
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
 
     if len(geoidfqs) > 1:
-        if areatype_str == 'county':
+        if areatype_str == "county":
             # get last 3 digits as county FIPS code
             geoid_list = []
             for geoidfq in geoidfqs:
                 geoid_list.append(geoidfq[-3:])
-        elif areatype_str == 'place':
+        elif areatype_str == "place":
             # get last 5 digits as place code
             geoid_list = []
             for geoidfq in geoidfqs:
                 geoid_list.append(geoidfq[-5:])
-        elif areatype_str == 'zcta':
+        elif areatype_str == "zcta":
             # get last 5 digits for zip code
             geoid_list = []
             for geoidfq in geoidfqs:
                 geoid_list.append(geoidfq[-5:])
-        elif areatype_str == 'tract':
+        elif areatype_str == "tract":
             # get last 9 digits for county FIPS code + tract code
             geoid_list = []
             for geoidfq in geoidfqs:
                 geoid_list.append(geoidfq[-9:])
 
     elif len(geoidfqs) == 1:
-        if areatype_str == 'county':
+        if areatype_str == "county":
             # get last 3 digits as county FIPS code
             geoid_list = [geoidfqs[0][-3:]]
-        elif areatype_str == 'place':
+        elif areatype_str == "place":
             # get last 5 digits as place code
             geoid_list = [geoidfqs[0][-5:]]
-        elif areatype_str == 'zcta':
+        elif areatype_str == "zcta":
             # get last 5 digits for zip code
             geoid_list = [geoidfqs[0][-5:]]
-        elif areatype_str == 'tract':
+        elif areatype_str == "tract":
             # get last 7 digits for county FIPS code + tract code
             geoid_list = [geoidfqs[0][-9:]]
 
@@ -187,74 +270,75 @@ def get_standard_geoid_df(geoid_lu_df, gvv_id):
         # TODO: raise an error
         print("no associated GEOIDFQs found!")
 
+    df = pd.DataFrame(
+        zip(gvv_ids, gvv_names, areatypes, placenames, geoid_list),
+        columns=["id", "name", "areatype", "placename", "GEOID"],
+    )
 
-    df = pd.DataFrame(zip(gvv_ids, gvv_names, areatypes, placenames, geoid_list), 
-                      columns=["id", "name", "areatype", "placename", "GEOID"])
-    
     return df
 
 
 def get_cdc_areatype_locationid_list(geoid_lu_df, gvv_id):
     """Get strings for area type and locationid's for a given GVV ID. GEOIDFQs are converted to CDC locationids.
     There will only be one area type, but strings may include more than one locationid. For CDC data, these are returned as a list.
-    
+
     Args:
         geoid_lu_df (pandas.DataFrame): table with GVV IDs and associated GEOIDFQs
         gvv_id (str): GVV ID used to look up associated GEOIDFQ(s)
     Returns:
         Tuple including geography type for API query (e.g., "place") and list of locationid strings in that geography type to use in API query.
-        """
-    areatypes = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['AREATYPE'].to_list()
+    """
+    areatypes = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["AREATYPE"].to_list()
     if len(areatypes) == 0:
         # TODO: raise an error
         print("no associated AREATYPE found!")
     else:
-        if areatypes[0] == 'County':
-            areatype_str = 'county'
-        elif areatypes[0] in ['Census designated place', 'Incorporated place']:
-            areatype_str = 'place'
-        elif areatypes[0] == 'ZCTA':
-            areatype_str = 'zcta'
-        elif areatypes[0] == 'Census tract':
-            areatype_str = 'tract'
+        if areatypes[0] == "County":
+            areatype_str = "county"
+        elif areatypes[0] in ["Census designated place", "Incorporated place"]:
+            areatype_str = "place"
+        elif areatypes[0] == "ZCTA":
+            areatype_str = "zcta"
+        elif areatypes[0] == "Census tract":
+            areatype_str = "tract"
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
 
-    geoidfqs = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['GEOIDFQ'].to_list()
+    geoidfqs = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["GEOIDFQ"].to_list()
     if len(geoidfqs) > 1:
-        if areatype_str == 'county':
+        if areatype_str == "county":
             # get last 5 digits as state FIPS + county FIPS code
             locationid_list = []
             for geoidfq in geoidfqs:
                 locationid_list.append(geoidfq[-5:])
-        elif areatype_str == 'place':
+        elif areatype_str == "place":
             # get last 7 digits as state FIPS + place code
             locationid_list = []
             for geoidfq in geoidfqs:
                 locationid_list.append(geoidfq[-7:])
-        elif areatype_str == 'zcta':
+        elif areatype_str == "zcta":
             # get last 5 digits for zip code
             locationid_list = []
             for geoidfq in geoidfqs:
                 locationid_list.append(geoidfq[-5:])
-        elif areatype_str == 'tract':
+        elif areatype_str == "tract":
             # get last 11 digits as state FIPS + county FIPS code + tract code
             locationid_list = []
             for geoidfq in geoidfqs:
                 locationid_list.append(geoidfq[-11:])
 
     elif len(geoidfqs) == 1:
-        if areatype_str == 'county':
+        if areatype_str == "county":
             # get last 5 digits as state FIPS + county FIPS code
             locationid_list = [geoidfqs[0][-5:]]
-        elif areatype_str == 'place':
+        elif areatype_str == "place":
             # get last 7 digits as state FIPS + place code
             locationid_list = [geoidfqs[0][-7:]]
-        elif areatype_str == 'zcta':
+        elif areatype_str == "zcta":
             # get last 5 digits for zip code
             locationid_list = [geoidfqs[0][-5:]]
-        elif areatype_str == 'tract':
+        elif areatype_str == "tract":
             # get last 11 digits as state FIPS + county FIPS code + tract code
             locationid_list = [geoidfqs[0][-11:]]
 
@@ -266,54 +350,54 @@ def get_cdc_areatype_locationid_list(geoid_lu_df, gvv_id):
 
 
 def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
-    """Get strings for area type and fully qualified GEOIDFQs for a given GVV ID. 
+    """Get strings for area type and fully qualified GEOIDFQs for a given GVV ID.
     There will only be one area type, but strings may include more than one GEOIDFQ.
-    
+
     Args:
         geoid_lu_df (pandas.DataFrame): table with GVV IDs and associated GEOIDFQs
         gvv_id (str): GVV ID used to look up associated GEOIDFQ(s)
     Returns:
         Tuple including geography type for API query (e.g., "place") and string of GEOIDFQ id(s) in that geography type to use in API query
-        """
-    areatypes = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['AREATYPE'].to_list()
+    """
+    areatypes = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["AREATYPE"].to_list()
     if len(areatypes) == 0:
         # TODO: raise an error
         print("no associated AREATYPE found!")
     else:
-        if areatypes[0] == 'County':
-            areatype_str = 'county'
-        elif areatypes[0] in ['Census designated place', 'Incorporated place']:
-            areatype_str = 'place'
-        elif areatypes[0] == 'ZCTA':
-            areatype_str = 'zip%20code%20tabulation%20area'
-        elif areatypes[0] == 'Census tract':
-            areatype_str = 'tract'
+        if areatypes[0] == "County":
+            areatype_str = "county"
+        elif areatypes[0] in ["Census designated place", "Incorporated place"]:
+            areatype_str = "place"
+        elif areatypes[0] == "ZCTA":
+            areatype_str = "zip%20code%20tabulation%20area"
+        elif areatypes[0] == "Census tract":
+            areatype_str = "tract"
         else:
             # TODO: raise an error
             print("unrecognized AREATYPE!")
 
-    geoidfqs = geoid_lu_df[geoid_lu_df['id'] == gvv_id]['GEOIDFQ'].to_list()
+    geoidfqs = geoid_lu_df[geoid_lu_df["id"] == gvv_id]["GEOIDFQ"].to_list()
     if len(geoidfqs) > 1:
-        if areatype_str == 'county':
+        if areatype_str == "county":
             # get last 3 digits as county FIPS code
             county_geoids = []
             for geoidfq in geoidfqs:
                 county_geoids.append(geoidfq[-3:])
             geoidfq_str = (",").join(county_geoids)
-        elif areatype_str == 'place':
+        elif areatype_str == "place":
             # get last 5 digits for place code
             place_geoids = []
             for geoidfq in geoidfqs:
                 place_geoids.append(geoidfq[-5:])
             geoidfq_str = (",").join(place_geoids)
-        elif areatype_str == 'zip%20code%20tabulation%20area':
+        elif areatype_str == "zip%20code%20tabulation%20area":
             # get last 5 digits for zip code
             zctas = []
             for geoidfq in geoidfqs:
                 zctas.append(geoidfq[-5:])
             geoidfq_str = (",").join(zctas)
-        elif areatype_str == 'tract':
-            # get digits -9 thru -6 as county FIPS code (for first tract only - assumes all tracts are in same county) 
+        elif areatype_str == "tract":
+            # get digits -9 thru -6 as county FIPS code (for first tract only - assumes all tracts are in same county)
             # get last 6 digits as tract code
             county_geoid = geoidfqs[0][-9:-6]
             tracts = []
@@ -322,19 +406,18 @@ def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
             # return as list: tract is a special case that will be checked for in fetch_census_data_and_compute()
             geoidfq_str = [county_geoid, (",").join(tracts)]
 
-
     elif len(geoidfqs) == 1:
-        if areatype_str == 'county':
+        if areatype_str == "county":
             # get last 3 digits as county FIPS code
             geoidfq_str = geoidfqs[0][-3:]
-        elif areatype_str == 'place':
+        elif areatype_str == "place":
             # get last 5 digits for place code
             geoidfq_str = geoidfqs[0][-5:]
-        elif areatype_str == 'zip%20code%20tabulation%20area':
+        elif areatype_str == "zip%20code%20tabulation%20area":
             # get last 5 digits for zip code
             geoidfq_str = geoidfqs[0][-5:]
-        elif areatype_str == 'tract':
-            # get digits -9 thru -6 as county FIPS code (for first tract only - assumes all tracts are in same county) 
+        elif areatype_str == "tract":
+            # get digits -9 thru -6 as county FIPS code (for first tract only - assumes all tracts are in same county)
             # get last 6 digits as tract code
             county_geoid = geoidfqs[0][-9:-6]
             tract_geoid = geoidfqs[0][-6:]
@@ -350,18 +433,83 @@ def get_census_areatype_geoid_strings(geoid_lu_df, gvv_id):
 
 def compute_dhc(dhc_data):
     """Compute the population percentages for different age group combinations, and return the computed columns.
-    This function makes a lot of assumptions about columns names; any revisions to the short names in luts.py will require changes here too."""
-    #dhc_data['total_population'] = dhc_data['total_male'] + dhc_data['total_female']
-    dhc_data['m_under_18'] = dhc_data['m_under_5'] + dhc_data['m_5_to_9'] + dhc_data['m_10_to_14'] + dhc_data['m_15_to_17']
-    dhc_data['f_under_18'] = dhc_data['f_under_5'] + dhc_data['f_5_to_9'] + dhc_data['f_10_to_14'] + dhc_data['f_15_to_17']
-    dhc_data['total_under_18'] = dhc_data['m_under_18'] + dhc_data['f_under_18']
-    dhc_data['m_65_plus'] = dhc_data['m_65_to_66'] + dhc_data['m_67_to_69'] + dhc_data['m_70_to_74'] + dhc_data['m_75_to_79'] + dhc_data['m_80_to_84'] + dhc_data['m_85_plus']
-    dhc_data['f_65_plus'] = dhc_data['f_65_to_66'] + dhc_data['f_67_to_69'] + dhc_data['f_70_to_74'] + dhc_data['f_75_to_79'] + dhc_data['f_80_to_84'] + dhc_data['f_85_plus']
-    dhc_data['total_65_plus'] = dhc_data['m_65_plus'] + dhc_data['f_65_plus']
-    dhc_data['pct_65_plus'] = round(dhc_data['total_65_plus']/dhc_data['total_population']*100,2)
-    dhc_data['pct_under_18'] = round(dhc_data['total_under_18']/dhc_data['total_population']*100,2)
+    This function makes a lot of assumptions about columns names; any revisions to the short names in luts.py will require changes here too.
+    """
 
-    return dhc_data[['GEOID', 'total_population', 'pct_65_plus', 'pct_under_18']]
+    # sex by age variables
+    # dhc_data['total_population'] = dhc_data[['total_male', 'total_female']].sum(axis=1, skipna=False)
+    dhc_data["m_under_18"] = dhc_data[
+        ["m_under_5", "m_5_to_9", "m_10_to_14", "m_15_to_17"]
+    ].sum(axis=1, skipna=False)
+    dhc_data["f_under_18"] = dhc_data[
+        ["f_under_5", "f_5_to_9", "f_10_to_14", "f_15_to_17"]
+    ].sum(axis=1, skipna=False)
+    dhc_data["total_under_18"] = dhc_data[["m_under_18", "f_under_18"]].sum(
+        axis=1, skipna=False
+    )
+    dhc_data["m_65_plus"] = dhc_data[
+        [
+            "m_65_to_66",
+            "m_67_to_69",
+            "m_70_to_74",
+            "m_75_to_79",
+            "m_80_to_84",
+            "m_85_plus",
+        ]
+    ].sum(axis=1, skipna=False)
+    dhc_data["f_65_plus"] = dhc_data[
+        [
+            "f_65_to_66",
+            "f_67_to_69",
+            "f_70_to_74",
+            "f_75_to_79",
+            "f_80_to_84",
+            "f_85_plus",
+        ]
+    ].sum(axis=1, skipna=False)
+    dhc_data["total_65_plus"] = dhc_data[["m_65_plus", "f_65_plus"]].sum(
+        axis=1, skipna=False
+    )
+    dhc_data["pct_65_plus"] = round(
+        dhc_data["total_65_plus"] / dhc_data["total_population"] * 100, 2
+    )  # dividing NaN or by Nan will produce NaN... no need to specify
+    dhc_data["pct_under_18"] = round(
+        dhc_data["total_under_18"] / dhc_data["total_population"] * 100, 2
+    )  # dividing NaN or by Nan will produce NaN... no need to specify
+    # race / ethnicity variables
+    dhc_data["pct_hispanic_latino"] = round(
+        dhc_data["hispanic_latino"] / dhc_data["total_p9"] * 100, 2
+    )
+    dhc_data["pct_white"] = round(dhc_data["white"] / dhc_data["total_p9"] * 100, 2)
+    dhc_data["pct_african_american"] = round(
+        dhc_data["african_american"] / dhc_data["total_p9"] * 100, 2
+    )
+    dhc_data["pct_amer_indian_ak_native"] = round(
+        dhc_data["amer_indian_ak_native"] / dhc_data["total_p9"] * 100, 2
+    )
+    dhc_data["pct_asian"] = round(dhc_data["asian"] / dhc_data["total_p9"] * 100, 2)
+    dhc_data["pct_hawaiian_pacislander"] = round(
+        dhc_data["hawaiian_pacislander"] / dhc_data["total_p9"] * 100, 2
+    )
+    dhc_data["pct_other"] = round(dhc_data["other"] / dhc_data["total_p9"] * 100, 2)
+    dhc_data["pct_multi"] = round(dhc_data["multi"] / dhc_data["total_p9"] * 100, 2)
+
+    return dhc_data[
+        [
+            "GEOID",
+            "total_population",
+            "pct_65_plus",
+            "pct_under_18",
+            "pct_hispanic_latino",
+            "pct_white",
+            "pct_african_american",
+            "pct_amer_indian_ak_native",
+            "pct_asian",
+            "pct_hawaiian_pacislander",
+            "pct_other",
+            "pct_multi",
+        ]
+    ]
 
 
 def compute_acs5(acs5_data):
@@ -379,7 +527,7 @@ def compute_cdc(cdc_data):
 def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df, print_url=False):
     """Fetch census data from their API. Using the census survey id, joins a base URL to a list of variable codes, area type, and GEOIDFQ(s),
     and requests the URL. Returns the JSON response. Print an error message if no response.
-    
+
     Args:
         survey_id (str): census survey id, one of "dhc" or "acs5"
         gvvid (str): GVV ID used to look up associated GEOIDFQ(s) and fetch data
@@ -390,25 +538,26 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df, print_url=Fals
     """
     # get strings to build URL
     base_url = var_dict[survey_id]["url"]
-    var_str = (',').join(list(var_dict[survey_id]["vars"].keys()))
+    var_str = (",").join(list(var_dict[survey_id]["vars"].keys()))
     areatype_str, geoidfq_str = get_census_areatype_geoid_strings(geoid_lu_df, gvv_id)
 
     # exclude state code from query if ZCTA
     if areatype_str == "zcta":
-        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&key={api_key}"
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&key={census_}"
     # separate list to get county and tract strings, include state FIPS code "02" for Alaska
     elif areatype_str == "tract":
-        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str[1]}&in=state:02&in=county:{geoidfq_str[0]}&key={api_key}"
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str[1]}&in=state:02&in=county:{geoidfq_str[0]}&key={census_}"
     # otherwise include state FIPS code "02" for Alaska
     else:
-        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={api_key}"
-    
-    if print_url: print(f"Requesting US Census data from: {url}")
+        url = f"{base_url}?get={var_str}&for={areatype_str}:{geoidfq_str}&in=state:02&key={census_}"
+
+    if print_url:
+        print(f"Requesting US Census data from: {url}")
 
     # request the data, raise error if not returned
     with requests.get(url) as r:
         if r.status_code != 200:
-            #TODO: raise error
+            # TODO: raise error
             print("No response, check your URL")
         else:
             r_json = r.json()
@@ -417,32 +566,34 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df, print_url=Fals
     df = pd.DataFrame(r_json[1:], columns=r_json[0])
 
     # rename geo column depending on areatype
-    if areatype_str == 'tract':
-        df['GEOID'] = df['county'] + df ['tract'] # concatenate columns to get standard 9 digit tract code
+    if areatype_str == "tract":
+        df["GEOID"] = (
+            df["county"] + df["tract"]
+        )  # concatenate columns to get standard 9 digit tract code
         df.drop(columns=["state", "county", "tract"], inplace=True)
     else:
         geolist = ["place", "county", "zip code tabulation area"]
         for c in df.columns:
             if c in geolist:
-                df.rename(columns={c:"GEOID"}, inplace=True)
+                df.rename(columns={c: "GEOID"}, inplace=True)
             if c == "state":
                 df.drop(columns="state", inplace=True)
 
     # convert non-GEOID columns to floats, and change any negative data values to NA...
-    # -6666666 is a commonly used nodata value, but there may be others. Assume all positive values are valid.
+    # -6666666 is a commonly used nodata value, but there may be others. Assume all zero values and positive values are valid.
     for c in df.columns:
         if c != "GEOID":
             df[c] = df[c].astype(float)
-            df[c].where(df[c] > 0, np.nan, inplace=True)
+            df[c].where(df[c] >= 0, np.nan, inplace=True)
 
     # use short names for variables columns if they exist in the dict
     new_cols_dict = {}
     for col in df.columns:
         try:
             new_col = var_dict[survey_id]["vars"][col]["short_name"]
-            new_cols_dict[col]=new_col
+            new_cols_dict[col] = new_col
         except:
-            new_cols_dict[col]=col 
+            new_cols_dict[col] = col
     df.rename(columns=new_cols_dict, inplace=True)
 
     # compute tables based on survey id
@@ -455,7 +606,7 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df, print_url=Fals
 def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
     """Fetch CDC data from their API. Depending on the geography, joins a base URL to a individual variable codes and locationid(s),
     and requests the URL. Returns the JSON response. Print an error message if no response.
-    
+
     Args:
         gvvid (str): GVV ID used to look up associated GEOIDFQ(s) and fetch data
         geoid_lu_df (pandas.DataFrame): lookup table with GVV IDs and GEOIDFQs
@@ -464,32 +615,36 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         pandas.DataFrame
     """
     # get strings to build URL
-    areatype_str, locationid_list = get_cdc_areatype_locationid_list(geoid_lu_df, gvv_id)
+    areatype_str, locationid_list = get_cdc_areatype_locationid_list(
+        geoid_lu_df, gvv_id
+    )
 
     results = {}
     # do a separate query for each var and location and collect results
     for locationid in locationid_list:
-
         loc_results = {}
         for var_str in var_dict["cdc"]["PLACES"]["vars"].keys():
             base_url = var_dict["cdc"]["PLACES"]["url"][areatype_str]
             if areatype_str in ["county", "place"]:
-                data_val_type_str = var_dict["cdc"]["PLACES"]["vars"][var_str]["data_value_type_id"]
-                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&datavaluetypeid={data_val_type_str}&locationid={locationid}"
+                data_val_type_str = var_dict["cdc"]["PLACES"]["vars"][var_str][
+                    "data_value_type_id"
+                ]
+                url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&datavaluetypeid={data_val_type_str}&locationid={locationid}"
             else:
                 # do not specify data value type id... only crude prevalence is available for ZCTAs!
-                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
 
-            if print_url: print(f"Requesting CDC data from: {url}")
+            if print_url:
+                print(f"Requesting CDC data from: {url}")
 
             with requests.get(url) as r:
                 if r.status_code != 200:
-                    #TODO: raise error
+                    # TODO: raise error
                     print("No response, check your URL")
                 else:
                     r_json = r.json()
             try:
-                val = float(r_json[0]['data_value'])
+                val = float(r_json[0]["data_value"])
             except:
                 val = np.nan
 
@@ -499,20 +654,21 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         for var_str in var_dict["cdc"]["SDOH"]["vars"].keys():
             base_url = var_dict["cdc"]["SDOH"]["url"][areatype_str]
             if areatype_str in ["county", "place"]:
-                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
+                url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
             else:
-                url = f"{base_url}?$$app_token={app_token}&measureid={var_str}&locationid={locationid}"
-            
-            if print_url: print(f"Requesting CDC data from: {url}")
+                url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
+
+            if print_url:
+                print(f"Requesting CDC data from: {url}")
 
             with requests.get(url) as r:
                 if r.status_code != 200:
-                    #TODO: raise error
+                    # TODO: raise error
                     print("No response, check your URL")
                 else:
                     r_json = r.json()
             try:
-                val = float(r_json[0]['data_value'])
+                val = float(r_json[0]["data_value"])
             except:
                 val = np.nan
 
@@ -525,15 +681,18 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
             locationid = locationid[2:]
         results[locationid] = loc_results
 
-        #convert to dataframe and reformat
-        df = pd.DataFrame.from_dict(results, orient='index', )
+        # convert to dataframe and reformat
+        df = pd.DataFrame.from_dict(
+            results,
+            orient="index",
+        )
         # rename/reindex loc col
-        df.reset_index(names='locationid', inplace=True)       
+        df.reset_index(names="locationid", inplace=True)
         # change any negative data values to NA
         # nodata values are also introduced above for any empty returns
         for c in df.columns:
             if c != "locationid":
                 df[c] = df[c].astype(float)
-                df[c].where(df[c] > 0, np.nan, inplace=True)
+                df[c].where(df[c] >= 0, np.nan, inplace=True)
 
     return compute_cdc(df)

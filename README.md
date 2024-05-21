@@ -5,6 +5,8 @@ Accessing US Census data and CDC health data via API to support demographic data
 
 This repo includes functions and lookup tables to support the EPA-Justice-HIA project which pulls demographic data from the US Census and CDC datasets. The functions here will take Alaska community IDs (from [this collection](https://github.com/ua-snap/geospatial-vector-veracity/blob/main/vector_data/point/alaska_point_locations.csv)) as their input, cross-reference these communities to their respective geographies using the most recent `NCRPlaces_Census_{MMDDYYYY}.csv` table, and compute data items relevant to the EPA-Justice-HIA project. These functions and/or the resulting tables will be incorporated into Northern Climate Reports.
 
+Some places have a one-to-many relationship with census geographies. In these cases, when results are available for every geographic unit, value are aggregated according to the guidance [here](https://www.cdc.gov/places/faqs/using-data/index.html). If results are unavailable for any geographic unit, values are not aggregated and and instead replaced with NA.
+
 This repo accesses US Census datasets via their survey-specific API endpoints ([ACS 5-year](https://www.census.gov/data/developers/data-sets/acs-5year.html) and [DHC](https://www.census.gov/data/developers/data-sets/decennial-census.html)), the CDC [PLACES](https://www.cdc.gov/places/index.html) datasets via their geography-specific API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-County-Data-20/swc5-untb/about_data), [place](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Place-Data-202/eav7-hnsx/about_data), [tract](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-ZCTA-Data-2023/qnzd-25i4/about_data)), and the CDC [SDOH](https://www.cdc.gov/places/social-determinants-of-health-and-places-data/index.html) datasets via their geography-specific API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-County-ACS-2017-2021/i6u4-y3g4/about_data), [place](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-Place-ACS-2017-2021/edkk-ze78/about_data), [tract](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-Census-Tract-ACS-2017-2021/e539-uadk/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-ZCTA-ACS-2017-2021/bumh-rgsq/about_data)). Note that zip code geographies are not currently used in this project, but the codebase here supports using zip codes if desired.
 
 ## Processing instructions
@@ -17,7 +19,7 @@ This repo also contains additional processing tools that were used for adding ne
 
 ## Data Dictionary
 
-The data variables below are pulled for each geography. The `short name` column is the abbreviated name used in the exported `data_to_export.csv`. All other column names should be self explanatory. **Note that the `data_to_export.csv` table may contain "one to many" relationships, where multiple rows of data exist for a single place `id`. These data will need to be aggregated in future work.**
+The data variables below are pulled for each geography. The `short name` column is the abbreviated name used in the exported `data_to_export.csv`. All other column names should be self explanatory.
 
 ### Census DHC Year 2020 - Raw data
 
@@ -46,12 +48,31 @@ The data variables below are pulled for each geography. The `short name` column 
 | P12_047N | !!Total:!!Female:!!75 to 79 years: SEX BY AGE FOR SELECTED AGE CATEGORIES | f_75_to_79 |
 | P12_048N | !!Total:!!Female:!!80 to 84 years: SEX BY AGE FOR SELECTED AGE CATEGORIES | f_80_to_84 |
 | P12_049N | !!Total:!!Female:!!85 years and over: SEX BY AGE FOR SELECTED AGE CATEGORIES | f_85_plus |
+| P9_001N | !!Total | total_p9 |
+| P9_002N | !!Total:!!Hispanic or Latino | hispanic_latino |
+| P9_005N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!White alone | white |
+| P9_006N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!Black or African American alone | african_american | 
+| P9_007N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!American Indian and Alaska Native alone | amer_indian_ak_native |
+| P9_008N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!Asian alone | asian |
+| P9_009N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!Native Hawaiian and Other Pacific Islander alone | hawaiian_pacislander |
+| P9_010N | !!Total:!!Not Hispanic or Latino:!!Population of one race:!!Some Other Race alone | other |
+| P9_011N | !!Total:!!Not Hispanic or Latino:!!Population of two or more races: | multi |
+
 
 ### Census DHC Year 2020 - Calculated from raw data
 | Variable ID | long name | short name
 | -------- | ------- | ------ |
 | NA | Percentage of population 65 and older| pct_65_plus |
 | NA | Percentage of population under age 18 | pct_under_18 |
+| NA | Percentage of population Hispanic or Latino | pct_hispanic_latino |
+| NA | Percentage of population White | pct_white |
+| NA | Percentage of population African American | pct_african_american |
+| NA | Percentage of population American Indian or Alaska Native | pct_amer_indian_ak_native |
+| NA | Percentage of population Asian | pct_asian |
+| NA | Percentage of population Native Hawaiian and Pacific Islander | pct_hawaiian_pacislander |
+| NA | Percentage of population Other Race | pct_other |
+| NA | Percentage of population Two or More Races | pct_multi |
+
 
 ### Census ACS 5-year Year 2023
 | Variable ID | long name | short name
@@ -67,12 +88,12 @@ The data variables below are pulled for each geography. The `short name` column 
 ### CDC PLACES Year 2023
 | Variable ID | long name | short name | data value type |
 | -------- | ------- | ------ | ------ |
-| CASTHMA | Current asthma among adults aged >=18 years | pct_asthma | age-adjusted prevalence |               
+| CASTHMA | Current asthma among adults aged >=18 years | pct_asthma | crude prevalence |               
 | COPD | Chronic obstructive pulmonary disease among adults aged >=18 years | pct_copd | crude prevalence |             
-| CHD | Coronary heart disease among adults aged >=18 years | pct_hd | age-adjusted prevalence | 
-| STROKE | Stroke among adults aged >=18 years | pct_stroke | age-adjusted prevalence |            
+| CHD | Coronary heart disease among adults aged >=18 years | pct_hd | crude prevalence | 
+| STROKE | Stroke among adults aged >=18 years | pct_stroke | crude prevalence |            
 | DIABETES | Diagnosed diabetes among adults aged >=18 years | pct_diabetes | crude prevalence |    
-| KIDNEY | Chronic kidney disease among adults aged >=18 years | pct_kd | age-adjusted prevalence |
+| KIDNEY | Chronic kidney disease among adults aged >=18 years | pct_kd | crude prevalence |
 
 ### CDC SDOH Years 2017-2021
 | Variable ID | long name | short name |

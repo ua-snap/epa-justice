@@ -1,8 +1,8 @@
-#census API key
-api_key = "839fc96162a9e16e7896434e7592eccaf7938706"
+# census API key
+census_ = "839fc96162a9e16e7896434e7592eccaf7938706"
 
-#CDC app token
-app_token = "aBj1zOdJs530ivzSUlyOHkLaf"
+# CDC app token
+cdc_ = "aBj1zOdJs530ivzSUlyOHkLaf"
 
 var_dict = {
     "dhc": {
@@ -10,7 +10,7 @@ var_dict = {
         "vars": {
             # total
             "P12_001N": {
-                "long_name": "!!Total:",
+                "long_name": "!!Total:",  # total from P12 table only: SEX BY AGE FOR SELECTED AGE CATEGORIES
                 "short_name": "total_population",
             },
             # male and female totals
@@ -104,10 +104,47 @@ var_dict = {
                 "long_name": "!!Total:!!Female:!!85 years and over: SEX BY AGE FOR SELECTED AGE CATEGORIES",
                 "short_name": "f_85_plus",
             },
+            # race / ethnicity
+            "P9_001N": {
+                "long_name": "!!Total",  # total from P9 table only: HISPANIC OR LATINO, AND NOT HISPANIC OR LATINO BY RACE
+                "short_name": "total_p9",
+            },
+            "P9_002N": {
+                "long_name": "!!Total:!!Hispanic or Latino",
+                "short_name": "hispanic_latino",
+            },
+            "P9_005N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!White alone",
+                "short_name": "white",
+            },
+            "P9_006N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Black or African American alone",
+                "short_name": "african_american",
+            },
+            "P9_007N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!American Indian and Alaska Native alone",
+                "short_name": "amer_indian_ak_native",
+            },
+            "P9_008N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Asian alone",
+                "short_name": "asian",
+            },
+            "P9_009N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Native Hawaiian and Other Pacific Islander alone",
+                "short_name": "hawaiian_pacislander",
+            },
+            "P9_010N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of one race:!!Some Other Race alone",
+                "short_name": "other",
+            },
+            "P9_011N": {
+                "long_name": "!!Total:!!Not Hispanic or Latino:!!Population of two or more races",
+                "short_name": "multi",
+            },
         },
     },
     "acs5": {
-        "url": "https://api.census.gov/data/2020/acs/acs5/subject",# note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
+        "url": "https://api.census.gov/data/2020/acs/acs5/subject",  # note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
         "vars": {
             "S1810_C03_001E": {
                 "long_name": "Percent with a disability!!Estimate!!Total civilian noninstitutionalized population",
@@ -136,12 +173,12 @@ var_dict = {
         },
     },
     "cdc": {
-        "PLACES":{
-            "url":{
-                "county":"https://data.cdc.gov/resource/swc5-untb.json",
-                "place":"https://data.cdc.gov/resource/eav7-hnsx.json",
-                "zcta":"https://data.cdc.gov/resource/qnzd-25i4.json",
-                "tract":"https://data.cdc.gov/resource/cwsq-ngmh.json",
+        "PLACES": {
+            "url": {
+                "county": "https://data.cdc.gov/resource/swc5-untb.json",
+                "place": "https://data.cdc.gov/resource/eav7-hnsx.json",
+                "zcta": "https://data.cdc.gov/resource/qnzd-25i4.json",
+                "tract": "https://data.cdc.gov/resource/cwsq-ngmh.json",
             },
             "vars": {
                 "CASTHMA": {
@@ -182,12 +219,12 @@ var_dict = {
                 },
             },
         },
-        "SDOH":{
-            "url":{
-                "county":"https://data.cdc.gov/resource/i6u4-y3g4.json",
-                "place":"https://data.cdc.gov/resource/edkk-ze78.json",
-                "zcta":"https://data.cdc.gov/resource/bumh-rgsq.json",
-                "tract":"https://data.cdc.gov/resource/e539-uadk.json",
+        "SDOH": {
+            "url": {
+                "county": "https://data.cdc.gov/resource/i6u4-y3g4.json",
+                "place": "https://data.cdc.gov/resource/edkk-ze78.json",
+                "zcta": "https://data.cdc.gov/resource/bumh-rgsq.json",
+                "tract": "https://data.cdc.gov/resource/e539-uadk.json",
             },
             "vars": {
                 "REMNRTY": {
