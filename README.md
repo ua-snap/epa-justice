@@ -74,7 +74,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | NA | Percentage of population Two or More Races | pct_multi |
 
 
-### Census ACS 5-year Year 2023
+### Census ACS 5-year Year 2020
 | Variable ID | long name | short name
 | -------- | ------- | ------ |
 | S1810_C03_001E | Percent with a disability!!Estimate!!Total civilian noninstitutionalized population | pct_w_disability |
