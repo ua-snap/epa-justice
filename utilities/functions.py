@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from multiprocessing.pool import Pool
 from utilities.luts import *
+from functools import reduce
 
 
 def aggregate_results(results_df):
@@ -697,80 +698,44 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         return compute_cdc(pd.DataFrame.from_dict(empty_row))
 
     else:
-        results = {}
-        # do a separate query for each var and location and collect results
-        for locationid in locationid_list:
-            loc_results = {}
-            for var_str in var_dict["cdc"]["PLACES"]["vars"].keys():
-                base_url = var_dict["cdc"]["PLACES"]["url"][areatype_str]
-                if areatype_str in ["county", "place"]:
-                    data_val_type_str = var_dict["cdc"]["PLACES"]["vars"][var_str][
-                        "data_value_type_id"
-                    ]
-                    url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&datavaluetypeid={data_val_type_str}&locationid={locationid}"
+        # combine locationid and variable strings into comma separated strings of strings
+        locationid_string = (",").join([f"'{x}'" for x in locationid_list])
+
+        places_var_string = (",").join([f"'{x}'" for x in list(var_dict["cdc"]["PLACES"]["vars"].keys())])
+        sdoh_var_string = (",").join([f"'{x}'" for x in list(var_dict["cdc"]["SDOH"]["vars"].keys())])
+
+        places_base_url = var_dict["cdc"]["PLACES"]["url"][areatype_str]
+        sdoh_base_url = var_dict["cdc"]["SDOH"]["url"][areatype_str]
+
+        #app token not currently working?? try without it
+        #places_url = f"{places_base_url}?$$app_token={cdc_}$where=measureid IN ({var_string}) AND datavaluetypeid IN ('CrdPrv') AND locationid IN ({locationid_string})"
+        places_url = f"{places_base_url}?$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv') AND locationid IN ({locationid_string})"
+        sdoh_url = f"{sdoh_base_url}?$where=measureid IN ({sdoh_var_string}) AND locationid IN ({locationid_string})"
+
+        results = []
+
+        for url, survey in zip([places_url, sdoh_url], ["PLACES", "SDOH"]):
+            with requests.get(url) as r:
+                if r.status_code != 200:
+                    print("No response, check your URL")
                 else:
-                    # do not specify data value type id... only crude prevalence is available for ZCTAs!
-                    url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
-
-                if print_url:
-                    print(f"Requesting CDC data from: {url}")
-
-                with requests.get(url) as r:
-                    if r.status_code != 200:
-                        # TODO: raise error
-                        print("No response, check your URL")
-                    else:
-                        r_json = r.json()
-                try:
-                    val = float(r_json[0]["data_value"])
-                except:
-                    val = np.nan
-
-                short_name = var_dict["cdc"]["PLACES"]["vars"][var_str]["short_name"]
-                loc_results[short_name] = val
-
-            for var_str in var_dict["cdc"]["SDOH"]["vars"].keys():
-                base_url = var_dict["cdc"]["SDOH"]["url"][areatype_str]
-                if areatype_str in ["county", "place"]:
-                    url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
-                else:
-                    url = f"{base_url}?$$app_token={cdc_}&measureid={var_str}&locationid={locationid}"
-
-                if print_url:
-                    print(f"Requesting CDC data from: {url}")
-
-                with requests.get(url) as r:
-                    if r.status_code != 200:
-                        # TODO: raise error
-                        print("No response, check your URL")
-                    else:
-                        r_json = r.json()
-                try:
-                    val = float(r_json[0]["data_value"])
-                except:
-                    val = np.nan
-
-                short_name = var_dict["cdc"]["SDOH"]["vars"][var_str]["short_name"]
-                loc_results[short_name] = val
-
-            # standardize locationid to match geoids for joining later on
-            # removes state FIPS for county, place, and tract; should not affect zip codes
-            if locationid.startswith("02"):
-                locationid = locationid[2:]
-            results[locationid] = loc_results
-
+                    r_json = r.json()
+            
             # convert to dataframe and reformat
-            df = pd.DataFrame.from_dict(
-                results,
-                orient="index",
-            )
-            # rename/reindex loc col
-            df.reset_index(names="locationid", inplace=True)
+            df = pd.DataFrame(r_json[1:], columns=r_json[0])
+            df = df[['locationid', 'measureid', 'data_value']].pivot(columns='measureid', index='locationid', values='data_value').reset_index()
             # change any negative data values to NA
             # nodata values are also introduced above for any empty returns
+            # at the same time, rename columns using short name
             for c in df.columns:
                 if c != "locationid":
                     df[c] = df[c].astype(float)
                     df[c].where(df[c] >= 0, np.nan, inplace=True)
+                    short_name = var_dict["cdc"][survey]["vars"][c]["short_name"]
+                    df.rename(columns={c : short_name}, inplace=True)
+
+            results.append(df)
+
+        df = reduce(lambda x, y: x.merge(y, on='locationid'), results)
 
         return compute_cdc(df)
