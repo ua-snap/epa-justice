@@ -150,6 +150,7 @@ def fetch_and_merge(geoid_lu_df, gvv_id, comment_dict):
     Returns:
         pandas.DataFrame
     """
+
     geoids = get_standard_geoid_df(geoid_lu_df, gvv_id)
     dhc = fetch_census_data_and_compute("dhc", gvv_id, geoid_lu_df)
     acs5 = fetch_census_data_and_compute("acs5", gvv_id, geoid_lu_df)
@@ -488,6 +489,7 @@ def compute_dhc(dhc_data):
 
     # sex by age variables
     # dhc_data['total_population'] = dhc_data[['total_male', 'total_female']].sum(axis=1, skipna=False)
+    dhc_data["total_under_5"] = dhc_data["m_under_5", "f_under_5"].sum(axis=1, skipna=False)
     dhc_data["m_under_18"] = dhc_data[
         ["m_under_5", "m_5_to_9", "m_10_to_14", "m_15_to_17"]
     ].sum(axis=1, skipna=False)
@@ -520,13 +522,19 @@ def compute_dhc(dhc_data):
     dhc_data["total_65_plus"] = dhc_data[["m_65_plus", "f_65_plus"]].sum(
         axis=1, skipna=False
     )
+
+    # convert population counts to pcts
     dhc_data["pct_65_plus"] = round(
         dhc_data["total_65_plus"] / dhc_data["total_population"] * 100, 2
     )  # dividing NaN or by Nan will produce NaN... no need to specify
     dhc_data["pct_under_18"] = round(
         dhc_data["total_under_18"] / dhc_data["total_population"] * 100, 2
     )  # dividing NaN or by Nan will produce NaN... no need to specify
-    # race / ethnicity variables
+    dhc_data["pct_under_5"] = round(
+        dhc_data["total_under_5"] / dhc_data["total_population"] * 100, 2
+    )  # dividing NaN or by Nan will produce NaN... no need to specify
+
+    # convert race / ethnicity counts to pcts
     dhc_data["pct_hispanic_latino"] = round(
         dhc_data["hispanic_latino"] / dhc_data["total_p9"] * 100, 2
     )
@@ -550,6 +558,7 @@ def compute_dhc(dhc_data):
             "total_population",
             "pct_65_plus",
             "pct_under_18",
+            "pct_under_5"
             "pct_hispanic_latino",
             "pct_white",
             "pct_african_american",
@@ -680,6 +689,9 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
     )
 
     # return empty rows for state of AK and US ... no CDC PLACES data is available for these geographies
+    # TODO: for US, use: $where=statedesc NOT IN ('Alaska') , plus var list, and sum all results
+    # TODO: for AK, use $where=statedesc IN ('Alaska') , plus var list, and sum all results
+
     if areatype_str in ["state", "us"]:
         if areatype_str == "state": loc_id = "02"
         elif areatype_str == "us": loc_id = "1"

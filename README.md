@@ -64,6 +64,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | -------- | ------- | ------ |
 | NA | Percentage of population 65 and older| pct_65_plus |
 | NA | Percentage of population under age 18 | pct_under_18 |
+| NA | Percentage of population under age 5 | pct_under_5 |
 | NA | Percentage of population Hispanic or Latino | pct_hispanic_latino |
 | NA | Percentage of population White | pct_white |
 | NA | Percentage of population African American | pct_african_american |
