@@ -489,7 +489,7 @@ def compute_dhc(dhc_data):
 
     # sex by age variables
     # dhc_data['total_population'] = dhc_data[['total_male', 'total_female']].sum(axis=1, skipna=False)
-    dhc_data["total_under_5"] = dhc_data["m_under_5", "f_under_5"].sum(axis=1, skipna=False)
+    dhc_data["total_under_5"] = dhc_data[["m_under_5", "f_under_5"]].sum(axis=1, skipna=False)
     dhc_data["m_under_18"] = dhc_data[
         ["m_under_5", "m_5_to_9", "m_10_to_14", "m_15_to_17"]
     ].sum(axis=1, skipna=False)
@@ -558,7 +558,7 @@ def compute_dhc(dhc_data):
             "total_population",
             "pct_65_plus",
             "pct_under_18",
-            "pct_under_5"
+            "pct_under_5",
             "pct_hispanic_latino",
             "pct_white",
             "pct_african_american",
@@ -688,66 +688,84 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         geoid_lu_df, gvv_id
     )
 
-    # return empty rows for state of AK and US ... no CDC PLACES data is available for these geographies
-    # TODO: for US, use: $where=statedesc NOT IN ('Alaska') , plus var list, and sum all results
-    # TODO: for AK, use $where=statedesc IN ('Alaska') , plus var list, and sum all results
+    # get base urls based on area type
+    places_base_url = var_dict["cdc"]["PLACES"]["url"][areatype_str]
+    sdoh_base_url = var_dict["cdc"]["SDOH"]["url"][areatype_str]
 
-    if areatype_str in ["state", "us"]:
-        if areatype_str == "state": loc_id = "02"
-        elif areatype_str == "us": loc_id = "1"
-        empty_row = {"locationid":loc_id,
-            "pct_asthma":[np.nan],
-            "pct_copd":[np.nan],
-            "pct_hd":[np.nan],
-            "pct_stroke":[np.nan],
-            "pct_diabetes":[np.nan],
-            "pct_kd":[np.nan],
-            "pct_minority":[np.nan],
-            "pct_no_hsdiploma":[np.nan],
-            "pct_below_150pov":[np.nan],
-            "pct_no_bband":[np.nan],
-            }
-        return compute_cdc(pd.DataFrame.from_dict(empty_row))
+    # combine variable strings into comma separated string of strings for SoQL query
+    places_var_string = (",").join([f"'{x}'" for x in list(var_dict["cdc"]["PLACES"]["vars"].keys())])
+    sdoh_var_string = (",").join([f"'{x}'" for x in list(var_dict["cdc"]["SDOH"]["vars"].keys())])
 
+    # construct SoQL query based on area type
+    if areatype_str == "state":
+        #app token not currently working?? try without it
+        #places_url = f"{places_base_url}?$$app_token={cdc_}$where=
+        places_url = f"{places_base_url}?$where=statedesc IN ('Alaska') AND measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv')&$limit=1000000"
+        sdoh_url = f"{sdoh_base_url}?$where=statedesc IN ('Alaska') AND measureid IN ({sdoh_var_string})&$limit=1000000"
+    
+    elif areatype_str == "us":
+        #app token not currently working?? try without it
+        #places_url = f"{places_base_url}?$$app_token={cdc_}$where=
+        places_url = f"{places_base_url}?$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv')&$limit=1000000"
+        sdoh_url = f"{sdoh_base_url}?$where=measureid IN ({sdoh_var_string})&$limit=1000000"
+        
     else:
-        # combine locationid and variable strings into comma separated strings of strings
+        # combine locationids into comma separated string of strings for SoQL query
         locationid_string = (",").join([f"'{x}'" for x in locationid_list])
-
-        places_var_string = (",").join([f"'{x}'" for x in list(var_dict["cdc"]["PLACES"]["vars"].keys())])
-        sdoh_var_string = (",").join([f"'{x}'" for x in list(var_dict["cdc"]["SDOH"]["vars"].keys())])
-
-        places_base_url = var_dict["cdc"]["PLACES"]["url"][areatype_str]
-        sdoh_base_url = var_dict["cdc"]["SDOH"]["url"][areatype_str]
 
         #app token not currently working?? try without it
         #places_url = f"{places_base_url}?$$app_token={cdc_}$where=measureid IN ({var_string}) AND datavaluetypeid IN ('CrdPrv') AND locationid IN ({locationid_string})"
         places_url = f"{places_base_url}?$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv') AND locationid IN ({locationid_string})"
         sdoh_url = f"{sdoh_base_url}?$where=measureid IN ({sdoh_var_string}) AND locationid IN ({locationid_string})"
 
-        results = []
+    #collect separate results for PLACES and SDOH datasets
+    results = []
 
-        for url, survey in zip([places_url, sdoh_url], ["PLACES", "SDOH"]):
-            with requests.get(url) as r:
-                if r.status_code != 200:
-                    print("No response, check your URL")
-                else:
-                    r_json = r.json()
-            
-            # convert to dataframe and reformat
-            df = pd.DataFrame(r_json[1:], columns=r_json[0])
-            df = df[['locationid', 'measureid', 'data_value']].pivot(columns='measureid', index='locationid', values='data_value').reset_index()
-            # change any negative data values to NA
-            # nodata values are also introduced above for any empty returns
-            # at the same time, rename columns using short name
-            for c in df.columns:
-                if c != "locationid":
-                    df[c] = df[c].astype(float)
-                    df[c].where(df[c] >= 0, np.nan, inplace=True)
-                    short_name = var_dict["cdc"][survey]["vars"][c]["short_name"]
-                    df.rename(columns={c : short_name}, inplace=True)
+    for url, survey in zip([places_url, sdoh_url], ["PLACES", "SDOH"]):
+        print(f"Requesting CDC {survey} data from: {url}")
+        with requests.get(url) as r:
+            if r.status_code != 200:
+                print("No response, check your URL")
+            else:
+                r_json = r.json()
+        
+        # convert to dataframe and reformat to wide
+        df = pd.DataFrame(r_json[1:], columns=r_json[0])
+        df_wide = df[['locationid', 'measureid', 'data_value']].pivot(columns=['measureid'], index='locationid', values='data_value').reset_index().merge(df[["locationid", "totalpopulation"]].drop_duplicates(), on="locationid")
+        df_wide["totalpopulation"] = df_wide["totalpopulation"].astype(float)
 
-            results.append(df)
+        # change any negative data values to NA
+        # nodata values are also introduced above for any empty returns
+        # at the same time, rename columns using short name
+        for c in df_wide.columns:
+            if c not in ["locationid", "totalpopulation"]:
+                df_wide[c] = df_wide[c].astype(float)
+                df_wide[c].where(df_wide[c] >= 0, np.nan, inplace=True)
+                short_name = var_dict["cdc"][survey]["vars"][c]["short_name"]
+                df_wide.rename(columns={c : short_name}, inplace=True)
 
-        df = reduce(lambda x, y: x.merge(y, on='locationid'), results)
+        # if state or US, do the aggregation math
+        if areatype_str in ["us", "state"]:
+            # set standard location ids
+            if areatype_str == "us" : df["locationid"] = "1"
+            if areatype_str == "state" : df["locationid"] = "02"
+        
+            # compute population counts by row
+            for c in df_wide.columns:
+                if c not in ["locationid", "totalpopulation"]:
+                    df_wide[c] = df_wide["totalpopulation"] * df_wide[c] / 100 # <<< in this temporary version of df, the columns are population counts and NOT percentages
+            # groupby and sum the data columns
+            agg_df = df_wide.groupby("locationid").sum()
+            # then convert back to percentages
+            for c in agg_df.columns:
+                if c not in ["locationid", "totalpopulation"]:
+                    agg_df[c] = round((agg_df[c] / agg_df["totalpopulation"] * 100), 2)
+            df_wide = agg_df.reset_index(drop=False)
 
-        return compute_cdc(df)
+        df_wide.drop(columns="totalpopulation", inplace=True)
+        df_wide.columns.name=''
+        results.append(df_wide)
+
+    out_df = reduce(lambda x, y: x.merge(y, on='locationid'), results)
+
+    return compute_cdc(out_df)
