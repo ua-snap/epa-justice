@@ -755,7 +755,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
     results = []
 
     for url, survey in zip([places_url, sdoh_url], ["PLACES", "SDOH"]):
-        if print == True:
+        if print_url:
             print(f"Requesting CDC {survey} data from: {url}")
         with requests.get(url) as r:
             if r.status_code != 200:
@@ -779,7 +779,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
                     pd.DataFrame(columns=cols),
                 ]
             )
-            if print == True:
+            if print_url:
                 print(
                     f"Returning empty CDC PLACES dataframe for location: {locationid_list}"
                 )
@@ -798,7 +798,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
                     pd.DataFrame(columns=cols),
                 ]
             )
-            if print == True:
+            if print_url:
                 print(
                     f"Returning empty CDC SDOH dataframe for location: {locationid_list}"
                 )
