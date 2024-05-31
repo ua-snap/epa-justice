@@ -175,8 +175,8 @@ var_dict = {
     "cdc": {
         "PLACES": {
             "url": {
-                "us": "https://data.cdc.gov/resource/cwsq-ngmh.json", # same endpoint as tract: we sum these to get all of US
-                "state": "https://data.cdc.gov/resource/cwsq-ngmh.json", # same endpoint as tract: we specify state as AK and sum
+                "us": "https://data.cdc.gov/resource/cwsq-ngmh.json",  # same endpoint as tract: we sum these to get all of US
+                "state": "https://data.cdc.gov/resource/cwsq-ngmh.json",  # same endpoint as tract: we specify state as AK and sum
                 "county": "https://data.cdc.gov/resource/swc5-untb.json",
                 "place": "https://data.cdc.gov/resource/eav7-hnsx.json",
                 "zcta": "https://data.cdc.gov/resource/qnzd-25i4.json",
@@ -223,8 +223,8 @@ var_dict = {
         },
         "SDOH": {
             "url": {
-                "us": "https://data.cdc.gov/resource/e539-uadk.json", # same endpoint as tract: we sum these to get all of US
-                "state": "https://data.cdc.gov/resource/e539-uadk.json", # same endpoint as tract: we specify state as AK and sum
+                "us": "https://data.cdc.gov/resource/e539-uadk.json",  # same endpoint as tract: we sum these to get all of US
+                "state": "https://data.cdc.gov/resource/e539-uadk.json",  # same endpoint as tract: we specify state as AK and sum
                 "county": "https://data.cdc.gov/resource/i6u4-y3g4.json",
                 "place": "https://data.cdc.gov/resource/edkk-ze78.json",
                 "zcta": "https://data.cdc.gov/resource/bumh-rgsq.json",
