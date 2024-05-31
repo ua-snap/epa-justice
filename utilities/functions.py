@@ -722,7 +722,8 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
     results = []
 
     for url, survey in zip([places_url, sdoh_url], ["PLACES", "SDOH"]):
-        print(f"Requesting CDC {survey} data from: {url}")
+        if print==True:
+            print(f"Requesting CDC {survey} data from: {url}")
         with requests.get(url) as r:
             if r.status_code != 200:
                 print("No response, check your URL")
@@ -730,7 +731,23 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
                 r_json = r.json()
         
         # convert to dataframe and reformat to wide
-        df = pd.DataFrame(r_json[1:], columns=r_json[0])
+        if len(r_json) == 0 and survey == "PLACES": #test for empty returns
+            cols = ['pct_asthma', 'pct_hd', 'pct_copd', 'pct_diabetes', 'pct_kd', 'pct_stroke']
+            empty_df = pd.concat([pd.DataFrame(data = locationid_list, columns=['locationid']), pd.DataFrame(columns=cols)])
+            if print==True:
+                print(f"Returning empty CDC PLACES dataframe for location: {locationid_list}")
+            results.append(empty_df)
+            continue
+        elif len(r_json) == 0 and survey == "SDOH": #test for empty returns
+            cols = ['pct_no_bband', 'pct_no_hsdiploma', 'pct_below_150pov', 'pct_minority']
+            empty_df = pd.concat([pd.DataFrame(data = locationid_list, columns=['locationid']), pd.DataFrame(columns=cols)])
+            if print==True:
+                print(f"Returning empty CDC SDOH dataframe for location: {locationid_list}")
+            results.append(empty_df)
+            continue
+        else: 
+            df = pd.DataFrame(r_json)
+        
         df_wide = df[['locationid', 'measureid', 'data_value']].pivot(columns=['measureid'], index='locationid', values='data_value').reset_index().merge(df[["locationid", "totalpopulation"]].drop_duplicates(), on="locationid")
         df_wide["totalpopulation"] = df_wide["totalpopulation"].astype(float)
 
@@ -747,8 +764,8 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         # if state or US, do the aggregation math
         if areatype_str in ["us", "state"]:
             # set standard location ids
-            if areatype_str == "us" : df["locationid"] = "1"
-            if areatype_str == "state" : df["locationid"] = "02"
+            if areatype_str == "us" : df_wide["locationid"] = "1"
+            if areatype_str == "state" : df_wide["locationid"] = "02"
         
             # compute population counts by row
             for c in df_wide.columns:
@@ -760,12 +777,22 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
             for c in agg_df.columns:
                 if c not in ["locationid", "totalpopulation"]:
                     agg_df[c] = round((agg_df[c] / agg_df["totalpopulation"] * 100), 2)
-            df_wide = agg_df.reset_index(drop=False)
+            results.append(agg_df.reset_index(drop=False))
 
-        df_wide.drop(columns="totalpopulation", inplace=True)
-        df_wide.columns.name=''
-        results.append(df_wide)
+        else:
+            results.append(df_wide)
 
+    for df in results:
+        if "totalpopulation" in df.columns:
+            df.drop(columns="totalpopulation", inplace=True)
+            df.columns.name=''
+        
     out_df = reduce(lambda x, y: x.merge(y, on='locationid'), results)
+
+    # standardize locationid to match geoids for joining later on
+    # removes state FIPS for county, place, and tract; should not affect zip codes
+    for idx, row in out_df.iterrows():
+        if row.locationid.startswith("02") and len(row.locationid)>2:
+            out_df.loc[idx, 'locationid'] = row.locationid[2:]
 
     return compute_cdc(out_df)
