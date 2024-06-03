@@ -144,7 +144,7 @@ var_dict = {
         },
     },
     "acs5": {
-        "url": "https://api.census.gov/data/2020/acs/acs5/subject",  # note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
+        "url": "https://api.census.gov/data/2021/acs/acs5/subject",  # note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
         "vars": {
             "S1810_C03_001E": {
                 "long_name": "Percent with a disability!!Estimate!!Total civilian noninstitutionalized population",
@@ -175,6 +175,8 @@ var_dict = {
     "cdc": {
         "PLACES": {
             "url": {
+                "us": "https://data.cdc.gov/resource/cwsq-ngmh.json",  # same endpoint as tract: we sum these to get all of US
+                "state": "https://data.cdc.gov/resource/cwsq-ngmh.json",  # same endpoint as tract: we specify state as AK and sum
                 "county": "https://data.cdc.gov/resource/swc5-untb.json",
                 "place": "https://data.cdc.gov/resource/eav7-hnsx.json",
                 "zcta": "https://data.cdc.gov/resource/qnzd-25i4.json",
@@ -221,6 +223,8 @@ var_dict = {
         },
         "SDOH": {
             "url": {
+                "us": "https://data.cdc.gov/resource/e539-uadk.json",  # same endpoint as tract: we sum these to get all of US
+                "state": "https://data.cdc.gov/resource/e539-uadk.json",  # same endpoint as tract: we specify state as AK and sum
                 "county": "https://data.cdc.gov/resource/i6u4-y3g4.json",
                 "place": "https://data.cdc.gov/resource/edkk-ze78.json",
                 "zcta": "https://data.cdc.gov/resource/bumh-rgsq.json",
