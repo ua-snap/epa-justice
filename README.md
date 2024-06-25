@@ -75,7 +75,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | NA | Percentage of population Two or More Races | pct_multi |
 
 
-### Census ACS 5-year Year 2017-2021
+### Census ACS 5-year (2018-2022)
 | Variable ID | long name | short name
 | -------- | ------- | ------ |
 | S1810_C03_001E | Percent with a disability!!Estimate!!Total civilian noninstitutionalized population | pct_w_disability |
@@ -96,7 +96,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | DIABETES | Diagnosed diabetes among adults aged >=18 years | pct_diabetes | crude prevalence |    
 | KIDNEY | Chronic kidney disease among adults aged >=18 years | pct_kd | crude prevalence |
 
-### CDC SDOH Years 2017-2021
+### CDC SDOH (2017-2021)
 | Variable ID | long name | short name |
 | -------- | ------- | ------ |
 REMNRTY | Persons of racial or ethnic minority status | pct_minority |
