@@ -247,6 +247,22 @@ var_dict = {
                     "long_name": "No broadband internet subscription among households",
                     "short_name": "pct_no_bband",
                 },
+                "CROWD": {
+                    "long_name": "Crowding among housing units",
+                    "short_name": "pct_crowding",
+                },
+                "HCOST": {
+                    "long_name": "Housing cost burden among households",
+                    "short_name": "pct_hcost",
+                },
+                "SNGPNT": {
+                    "long_name": "Single-parent households",
+                    "short_name": "pct_single_parent",
+                },
+                "UNEMP": {
+                    "long_name": "Unemployment among people 16 years or older in the labor force",
+                    "short_name": "pct_unemployed",
+                },
             },
         },
     },
