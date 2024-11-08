@@ -213,9 +213,9 @@ var_dict = {
                     "data_value_type_name": "crude prevalence",
                     "data_value_type_id": "CrdPrv",
                 },
-                "KIDNEY": {
-                    "long_name": "Chronic kidney disease among adults aged >=18 years",
-                    "short_name": "pct_kd",
+                "MHLTH": {
+                    "long_name": "Frequent mental distress among adults aged >=18 years",
+                    "short_name": "pct_mh",
                     "data_value_type_name": "crude prevalence",
                     "data_value_type_id": "CrdPrv",
                 },
