@@ -770,7 +770,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
                 "pct_hd",
                 "pct_copd",
                 "pct_diabetes",
-                "pct_kd",
+                "pct_mh",
                 "pct_stroke",
             ]
             empty_df = pd.concat(
