@@ -791,6 +791,10 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
                 "pct_no_hsdiploma",
                 "pct_below_150pov",
                 "pct_minority",
+                "pct_crowding",
+                "pct_hcost",
+                "pct_single_parent",
+                "pct_unemployed",
             ]
             empty_df = pd.concat(
                 [
