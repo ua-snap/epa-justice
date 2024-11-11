@@ -219,6 +219,18 @@ var_dict = {
                     "data_value_type_name": "crude prevalence",
                     "data_value_type_id": "CrdPrv",
                 },
+                "FOODSTAMP": {
+                    "long_name": "Received food stamps in the past 12 months among adults aged >=18 years",
+                    "short_name": "pct_foodstamps",
+                    "data_value_type_name": "crude prevalence",
+                    "data_value_type_id": "CrdPrv",
+                },
+                "EMOTIONSPT": {
+                    "long_name": "Lack of social and emotional support among adults aged >=18 years",
+                    "short_name": "pct_emospt",
+                    "data_value_type_name": "crude prevalence",
+                    "data_value_type_id": "CrdPrv",
+                },
             },
         },
         "SDOH": {
