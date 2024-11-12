@@ -86,7 +86,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | S2701_C05_001M | Margin of Error!!Percent Uninsured!!Civilian noninstitutionalized population	| moe_pct_uninsured |
 
 
-### CDC PLACES Year 2023
+### CDC PLACES Year 2024
 | Variable ID | long name | short name | data value type |
 | -------- | ------- | ------ | ------ |
 | CASTHMA | Current asthma among adults aged >=18 years | pct_asthma | crude prevalence |               
@@ -94,7 +94,10 @@ The data variables below are pulled for each geography. The `short name` column 
 | CHD | Coronary heart disease among adults aged >=18 years | pct_hd | crude prevalence | 
 | STROKE | Stroke among adults aged >=18 years | pct_stroke | crude prevalence |            
 | DIABETES | Diagnosed diabetes among adults aged >=18 years | pct_diabetes | crude prevalence |    
-| KIDNEY | Chronic kidney disease among adults aged >=18 years | pct_kd | crude prevalence |
+| MHLTH | Frequent mental distress among adults aged >=18 years | pct_mh | crude prevalence |
+| FOODSTAMP | Received food stamps in the past 12 months among adults aged >=18 years | pct_foodstamps | crude prevalence |
+| EMOTIONSPT | Lack of social and emotional support among adults aged >=18 years | pct_emospt | crude prevalence |
+
 
 ### CDC SDOH (2017-2021)
 | Variable ID | long name | short name |
@@ -103,4 +106,8 @@ REMNRTY | Persons of racial or ethnic minority status | pct_minority |
 NOHSDP | No high school diploma among adults aged 25 years or older | pct_no_hsdiploma |
 POV150 | Persons living below 150% of the poverty level | pct_below_150pov |
 BROAD | No broadband internet subscription among households | pct_no_bband |
+CROWD | Crowding among housing units | pct_crowding
+HCOST | Housing cost burden among households | pct_hcost
+SNGPNT | Single-parent households | pct_single_parent
+UNEMP | Unemployment among people 16 years or older in the labor force | pct_unemployed
                 
