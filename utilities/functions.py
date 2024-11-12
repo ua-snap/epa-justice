@@ -767,11 +767,29 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         if len(r_json) == 0 and survey == "PLACES":  # test for empty returns
             cols = [
                 "pct_asthma",
+                "pct_asthma_low",
+                "pct_asthma_high",
                 "pct_hd",
+                "pct_hd_low",
+                "pct_hd_high",
                 "pct_copd",
+                "pct_copd_low",
+                "pct_copd_high",
                 "pct_diabetes",
+                "pct_diabetes_low",
+                "pct_diabetes_high",
                 "pct_mh",
+                "pct_mh_low",
+                "pct_mh_high",
                 "pct_stroke",
+                "pct_stroke_low",
+                "pct_stroke_high",
+                "pct_foodstamps",
+                "pct_foodstamps_low",
+                "pct_foodstamps_high",
+                "pct_emospt",
+                "pct_emospt_low",
+                "pct_emospt_high",
             ]
             empty_df = pd.concat(
                 [
@@ -811,24 +829,75 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
         else:
             df = pd.DataFrame(r_json)
 
-        df_wide = (
-            df[["locationid", "measureid", "data_value"]]
-            .pivot(columns=["measureid"], index="locationid", values="data_value")
-            .reset_index()
-            .merge(
-                df[["locationid", "totalpopulation"]].drop_duplicates(), on="locationid"
+        if survey == "PLACES":
+
+            df.rename(
+                columns={
+                    "low_confidence_limit": "low",
+                    "high_confidence_limit": "high",
+                },
+                inplace=True,
             )
-        )
-        df_wide["totalpopulation"] = df_wide["totalpopulation"].astype(float)
+
+            # add confidence intervals to PLACES dataframe only
+            # pivot data values for measures in wide format
+            df_wide = (
+                df[["locationid", "measureid", "data_value"]]
+                .pivot(columns=["measureid"], index="locationid", values="data_value")
+                .reset_index()
+                .merge(
+                    df[["locationid", "totalpopulation"]].drop_duplicates(),
+                    on="locationid",
+                )
+            )
+            # pivot confidence intervals in separate dataframe and combine measureid name with confidence interval name for new column names
+            df_ci = df[
+                [
+                    "locationid",
+                    "measureid",
+                    "low",
+                    "high",
+                ]
+            ].pivot(
+                columns=["measureid"],
+                index="locationid",
+                values=["low", "high"],
+            )
+            new_cols = []
+            for col_1, col_0 in zip(
+                df_ci.columns.get_level_values(1), df_ci.columns.get_level_values(0)
+            ):
+                new_cols.append(f"{col_1}_{col_0}")
+            df_ci.columns = new_cols
+
+            # merge wide data with confidence interval dataframe
+            df_wide = df_wide.merge(df_ci, on="locationid")
+
+            df_wide["totalpopulation"] = df_wide["totalpopulation"].astype(float)
+
+        else:
+            df_wide = (
+                df[["locationid", "measureid", "data_value"]]
+                .pivot(columns=["measureid"], index="locationid", values="data_value")
+                .reset_index()
+                .merge(
+                    df[["locationid", "totalpopulation"]].drop_duplicates(),
+                    on="locationid",
+                )
+            )
+            df_wide["totalpopulation"] = df_wide["totalpopulation"].astype(float)
 
         # change any negative data values to NA
         # nodata values are also introduced above for any empty returns
-        # at the same time, rename columns using short name
+        # at the same time, rename columns using short names from var_dict or ci_dict
         for c in df_wide.columns:
             if c not in ["locationid", "totalpopulation"]:
                 df_wide[c] = df_wide[c].astype(float)
                 df_wide[c].where(df_wide[c] >= 0, np.nan, inplace=True)
-                short_name = var_dict["cdc"][survey]["vars"][c]["short_name"]
+                try:
+                    short_name = var_dict["cdc"][survey]["vars"][c]["short_name"]
+                except:
+                    short_name = ci_dict[c]
                 df_wide.rename(columns={c: short_name}, inplace=True)
 
         # if state or US, do the aggregation math
