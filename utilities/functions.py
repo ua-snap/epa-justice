@@ -81,8 +81,8 @@ def aggregate_results(results_df):
             return np.sum(x)
 
     # build an aggregation dict for all data columns
-    # use "first" for non-data columns, except use the custom function when aggregating placename and GEOID strings
-    # list columns that are only for adults; we need to use the "adult_population" field when aggregating these
+    # use "first" for non-data columns, or the custom function when aggregating placename and GEOID strings
+    # list columns that are only for adult population; we need to use the "adult_population" field when aggregating these
     # sum all other data columns; they will be converted from pct to real population counts before summing
     non_data_cols = ["id", "name", "areatype", "placename", "GEOID", "comment"]
     adult_only_cols = [
@@ -157,6 +157,7 @@ def aggregate_results(results_df):
             if (
                 col != "total_population"
                 and col != "adult_population"
+                and col not in adult_only_cols
                 and col not in non_data_cols
             ):
                 agg_df[col] = round((agg_df[col] / agg_df["total_population"] * 100), 2)
