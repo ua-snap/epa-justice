@@ -46,6 +46,8 @@ def calculate_pop_variance(df):
                 i
             ] = adult_population_variance
 
+    df.to_csv("qc/pop_var_df.csv")
+
     return df
 
 
@@ -129,7 +131,7 @@ def aggregate_results(results_df):
             if col.endswith("_adult_population_variance"):
                 pooled_sd_col_name = "pct_" + col.split("_")[1] + "_pooled_sd"
                 # calculate the pooled SD for each measure
-                # formula = sqrt(sum of variances / sum of adult populations - 1)
+                # formula = sqrt(sum of variances / sum of adult populations - count of rows)
                 sub_df[pooled_sd_col_name] = np.sqrt(
                     np.sum(sub_df[col])
                     / (np.sum(sub_df["adult_population"]) - len(sub_df))
@@ -167,20 +169,30 @@ def aggregate_results(results_df):
         # calculate the pooled CI for each measure and replace the values in each row in the subset dataframe
         for col in agg_df.columns:
             if col.endswith("_high"):
+                # drop the column (it already exists with an incorrect value)
+                agg_df.drop(columns=col, inplace=True)
+                # get the measure name from the column name and set up the new column name
                 measure_name = col.split("_")[1]
                 measure_col_name = "pct_" + measure_name
                 pooled_sd_col_name = measure_col_name + "_pooled_sd"
-                # high 95% CI formula: value + 1.96 * (pooled SD / sqrt(adult population))
-                agg_df[col] = agg_df[measure_col_name] + 1.96 * (
-                    (agg_df[pooled_sd_col_name] / math.sqrt(agg_df["adult_population"]))
+                # use first value as pooled SD for each measure
+                pooled_sd = agg_df[pooled_sd_col_name].values[0]
+                # high 95% CI formula: value + (1.96 * (pooled SD / sqrt(adult population)))
+                agg_df[col] = agg_df[measure_col_name] + (
+                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"]))
                 )
             elif col.endswith("_low"):
+                # drop the column (it already exists with an incorrect value)
+                agg_df.drop(columns=col, inplace=True)
+                # get the measure name from the column name and set up the new column name
                 measure_name = col.split("_")[1]
                 measure_col_name = "pct_" + measure_name
                 pooled_sd_col_name = measure_col_name + "_pooled_sd"
-                # low 95% CI formula: value - 1.96 * (pooled SD / sqrt(adult population))
-                agg_df[col] = agg_df[measure_col_name] - 1.96 * (
-                    (agg_df[pooled_sd_col_name] / math.sqrt(agg_df["adult_population"]))
+                # use first value as pooled SD for each measure
+                pooled_sd = agg_df[pooled_sd_col_name].values[0]
+                # low 95% CI formula: value - (1.96 * (pooled SD / sqrt(adult population)))
+                agg_df[col] = agg_df[measure_col_name] - (
+                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"]))
                 )
 
         # drop the original duplicated rows
