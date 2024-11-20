@@ -46,8 +46,6 @@ def calculate_pop_variance(df):
                 i
             ] = adult_population_variance
 
-    df.to_csv("qc/pop_var_df.csv")
-
     return df
 
 
@@ -132,10 +130,14 @@ def aggregate_results(results_df):
                 pooled_sd_col_name = "pct_" + col.split("_")[1] + "_pooled_sd"
                 # calculate the pooled SD for each measure
                 # formula = sqrt(sum of variances / sum of adult populations - count of rows)
-                sub_df[pooled_sd_col_name] = np.sqrt(
-                    np.sum(sub_df[col])
-                    / (np.sum(sub_df["adult_population"]) - len(sub_df))
+                sum_of_variances = np.sum(sub_df[col])
+                sum_of_adult_populations = np.sum(sub_df["adult_population"])
+                count_of_rows = len(sub_df)
+                pooled_sd = np.sqrt(
+                    sum_of_variances / (sum_of_adult_populations - count_of_rows)
                 )
+
+                sub_df[pooled_sd_col_name] = pooled_sd
                 agg_dict[pooled_sd_col_name] = "first"
 
         # compute population counts by row
@@ -143,6 +145,7 @@ def aggregate_results(results_df):
             if (
                 col != "total_population"
                 and col != "adult_population"
+                and col.endswith("pooled_sd") is False
                 and col not in adult_only_cols
                 and col not in non_data_cols
             ):
@@ -159,6 +162,7 @@ def aggregate_results(results_df):
             if (
                 col != "total_population"
                 and col != "adult_population"
+                and col.endswith("pooled_sd") is False
                 and col not in adult_only_cols
                 and col not in non_data_cols
             ):
@@ -179,7 +183,7 @@ def aggregate_results(results_df):
                 pooled_sd = agg_df[pooled_sd_col_name].values[0]
                 # high 95% CI formula: value + (1.96 * (pooled SD / sqrt(adult population)))
                 agg_df[col] = agg_df[measure_col_name] + (
-                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"]))
+                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
                 )
             elif col.endswith("_low"):
                 # drop the column (it already exists with an incorrect value)
@@ -192,7 +196,7 @@ def aggregate_results(results_df):
                 pooled_sd = agg_df[pooled_sd_col_name].values[0]
                 # low 95% CI formula: value - (1.96 * (pooled SD / sqrt(adult population)))
                 agg_df[col] = agg_df[measure_col_name] - (
-                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"]))
+                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
                 )
 
         # drop the original duplicated rows
