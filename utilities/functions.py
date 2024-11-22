@@ -1,13 +1,57 @@
 import requests
 import pandas as pd
 import numpy as np
+import math
 from multiprocessing.pool import Pool
 from utilities.luts import *
 from functools import reduce
 
 
+def calculate_pop_variance(df):
+    """Calculates the adult population variance for each measure into new columns in the final results table.
+    This is done by back-calculating the standard deviation for each measure and multiplying
+    it's square by the adult population - 1. Also adds the total adult population count as a new column in the final results table.
+
+    Args:
+        df (pandas.DataFrame): concatenated dataframe result from the run_fetch_and_merge() function.
+    Returns:
+        pandas.DataFrame with adult population variance for each measure and total adult population columns added.
+    """
+
+    # add a new column with each row's adult population count
+    df["adult_population"] = round(
+        df["total_population"] - (df["total_population"] * (df["pct_under_18"] / 100))
+    )
+
+    # add new empty columns to hold adult population variance for each measure
+    for var in var_dict["cdc"]["PLACES"]["vars"]:
+        short_name = var_dict["cdc"]["PLACES"]["vars"][var]["short_name"]
+        df[short_name + "_adult_population_variance"] = None
+
+    # iterate through the rows and measures to back calculate the standard deviation for the adult population
+    for i, row in df.iterrows():
+        for var in var_dict["cdc"]["PLACES"]["vars"]:
+            # identify the columns for the measure and the high CI
+            measure_col = var_dict["cdc"]["PLACES"]["vars"][var]["short_name"]
+            ci_high_col = str(measure_col + "_high")
+            # find the difference between high CI and the measure value (ie, the margin of error)
+            moe = row[ci_high_col] - row[measure_col]
+            # multiply moe by square root of adult population and divide by 1.96 to get the standard deviation for 95% CI
+            sd = (moe * (math.sqrt(row["adult_population"]))) / 1.96
+            # calculate variance and adult population variance, then populate the empty columns we created
+            # formula = (adult_population - 1) * variance
+            variance = sd**2
+            adult_population_variance = (row["adult_population"] - 1) * variance
+            df[measure_col + "_adult_population_variance"].iloc[
+                i
+            ] = adult_population_variance
+
+    return df
+
+
 def aggregate_results(results_df):
     """Aggregates any one-to-many relationships in the final results table.
+    Includes calculating the pooled standard deviation and the 95% CI for each measure that reports those statistics.
 
     Args:
         df (pandas.DataFrame): concatenated dataframe result from the run_fetch_and_merge() function
@@ -16,6 +60,10 @@ def aggregate_results(results_df):
     """
     # reset index just in case there are duplicate indices
     df = results_df.reset_index(drop=True)
+
+    # calculate adult population variances (adds a new column to the dataframe for each measure)
+    # required for calculation of pooled 95% CI
+    df = calculate_pop_variance(df)
 
     # make sure GEOIDs are strings in order to list them with sum (instead of summing them as integers!)
     df["GEOID"] = df["GEOID"].astype(str)
@@ -33,9 +81,20 @@ def aggregate_results(results_df):
             return np.sum(x)
 
     # build an aggregation dict for all data columns
-    # use "first" for non-data columns, except use the custom function when aggregating placename and GEOID strings
-    # sum the actual data columns; they will be converted from pct to real population counts before summing
+    # use "first" for non-data columns, or the custom function when aggregating placename and GEOID strings
+    # list columns that are only for adult population; we need to use the "adult_population" field when aggregating these
+    # sum all other data columns; they will be converted from pct to real population counts before summing
     non_data_cols = ["id", "name", "areatype", "placename", "GEOID", "comment"]
+    adult_only_cols = [
+        "pct_asthma",
+        "pct_copd",
+        "pct_chd",
+        "pct_stroke",
+        "pct_diabetes",
+        "pct_mh",
+        "pct_foodstamps",
+        "pct_emospt",
+    ]
     agg_dict = {}
 
     for col in df.columns:
@@ -50,22 +109,49 @@ def aggregate_results(results_df):
     # create list to collect results
     agg_df_list = []
 
-    # list duplicated ids and names
+    # list duplicated ids and names; these rows need to be aggregated
     dups = list(
         zip(
             df[df.duplicated(subset="id")]["id"].unique().tolist(),
             df[df.duplicated(subset="id")]["name"].unique().tolist(),
         )
     )
-    # iterate thru the list
+    # iterate thru the list of duplicated ids and names
     for dup in dups:
         print(f"Aggregating values for {dup[0]}: {dup[1]}")
 
-        # get duplicated rows, and compute population counts by row
+        # get duplicated rows into a subset dataframe
         sub_df = df[df["id"] == dup[0]]
+
+        # calculate the pooled SD for each measure and add as a new column to each row in the subset dataframe
+        # note that these values will just be identical in every row of the subset dataframe, so that we can use "first" aggregation method
         for col in sub_df.columns:
-            if col != "total_population" and col not in non_data_cols:
+            if col.endswith("_adult_population_variance"):
+                pooled_sd_col_name = "pct_" + col.split("_")[1] + "_pooled_sd"
+                # calculate the pooled SD for each measure
+                # formula = sqrt(sum of variances / sum of adult populations - count of rows)
+                sum_of_variances = np.sum(sub_df[col])
+                sum_of_adult_populations = np.sum(sub_df["adult_population"])
+                count_of_rows = len(sub_df)
+                pooled_sd = np.sqrt(
+                    sum_of_variances / (sum_of_adult_populations - count_of_rows)
+                )
+
+                sub_df[pooled_sd_col_name] = pooled_sd
+                agg_dict[pooled_sd_col_name] = "first"
+
+        # compute population counts by row
+        for col in sub_df.columns:
+            if (
+                col != "total_population"
+                and col != "adult_population"
+                and col.endswith("pooled_sd") is False
+                and col not in adult_only_cols
+                and col not in non_data_cols
+            ):
                 sub_df[col] = sub_df["total_population"] * sub_df[col] / 100
+            elif col in adult_only_cols:
+                sub_df[col] = sub_df["adult_population"] * sub_df[col] / 100
 
         # in this version of sub_df, the columns are population counts and NOT percentages
         # so now we can use groupby and aggregate the data columns according to the agg_dict functions
@@ -73,17 +159,62 @@ def aggregate_results(results_df):
 
         # convert back to percentages
         for col in agg_df.columns:
-            if col != "total_population" and col not in non_data_cols:
+            if (
+                col != "total_population"
+                and col != "adult_population"
+                and col.endswith("pooled_sd") is False
+                and col not in adult_only_cols
+                and col not in non_data_cols
+            ):
                 agg_df[col] = round((agg_df[col] / agg_df["total_population"] * 100), 2)
+            elif col in adult_only_cols:
+                agg_df[col] = round((agg_df[col] / agg_df["adult_population"] * 100), 2)
 
-        # drop the original duplicated rows and add the newly aggregated rows to agg_df_list
+        # calculate the pooled CI for each measure and replace the values in each row in the subset dataframe
+        for col in agg_df.columns:
+            if col.endswith("_high"):
+                # drop the column (it already exists with an incorrect value)
+                agg_df.drop(columns=col, inplace=True)
+                # get the measure name from the column name and set up the new column name
+                measure_name = col.split("_")[1]
+                measure_col_name = "pct_" + measure_name
+                pooled_sd_col_name = measure_col_name + "_pooled_sd"
+                # use first value as pooled SD for each measure
+                pooled_sd = agg_df[pooled_sd_col_name].values[0]
+                # high 95% CI formula: value + (1.96 * (pooled SD / sqrt(adult population)))
+                agg_df[col] = agg_df[measure_col_name] + (
+                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
+                )
+            elif col.endswith("_low"):
+                # drop the column (it already exists with an incorrect value)
+                agg_df.drop(columns=col, inplace=True)
+                # get the measure name from the column name and set up the new column name
+                measure_name = col.split("_")[1]
+                measure_col_name = "pct_" + measure_name
+                pooled_sd_col_name = measure_col_name + "_pooled_sd"
+                # use first value as pooled SD for each measure
+                pooled_sd = agg_df[pooled_sd_col_name].values[0]
+                # low 95% CI formula: value - (1.96 * (pooled SD / sqrt(adult population)))
+                agg_df[col] = agg_df[measure_col_name] - (
+                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
+                )
+
+        # drop the original duplicated rows
         df.drop(df[df["id"] == dup[0]].index, inplace=True)
+
+        # add the newly aggregated rows to agg_df_list and concatenate them with the original dataframe
         agg_df_list.append(agg_df)
 
         out_df = pd.concat([df, *agg_df_list])
         out_df.reset_index(drop=True, inplace=True)
 
-    return out_df
+    # list columns we want to drop from the final results dataframe
+    drop_cols = [
+        col for col in out_df.columns if "pooled_sd" in col or "variance" in col
+    ]
+    drop_cols += ["adult_population"]
+
+    return out_df.drop(columns=drop_cols)
 
 
 def create_comment_dict(geoid_lu_df):
@@ -513,7 +644,6 @@ def compute_dhc(dhc_data):
     """
 
     # sex by age variables
-    # dhc_data['total_population'] = dhc_data[['total_male', 'total_female']].sum(axis=1, skipna=False)
     dhc_data["total_under_5"] = dhc_data[["m_under_5", "f_under_5"]].sum(
         axis=1, skipna=False
     )
@@ -729,27 +859,31 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
 
     # construct SoQL query based on area type
     if areatype_str == "state":
-        # app token not currently working?? try without it
-        # places_url = f"{places_base_url}?$$app_token={cdc_}$where=
-        places_url = f"{places_base_url}?$where=statedesc IN ('Alaska') AND measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv')&$limit=1000000"
-        sdoh_url = f"{sdoh_base_url}?$where=statedesc IN ('Alaska') AND measureid IN ({sdoh_var_string})&$limit=1000000"
+        if use_cdc_token:
+            places_url = f"{places_base_url}?$$app_token={cdc_}$where=statedesc IN ('Alaska') AND measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv')&$limit=1000000"
+            sdoh_url = f"{sdoh_base_url}?$$app_token={cdc_}$where=statedesc IN ('Alaska') AND measureid IN ({sdoh_var_string})&$limit=1000000"
+        else:
+            places_url = f"{places_base_url}?$where=statedesc IN ('Alaska') AND measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv')&$limit=1000000"
+            sdoh_url = f"{sdoh_base_url}?$where=statedesc IN ('Alaska') AND measureid IN ({sdoh_var_string})&$limit=1000000"
 
     elif areatype_str == "us":
-        # app token not currently working?? try without it
-        # places_url = f"{places_base_url}?$$app_token={cdc_}$where=
-        places_url = f"{places_base_url}?$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv')&$limit=1000000"
-        sdoh_url = (
-            f"{sdoh_base_url}?$where=measureid IN ({sdoh_var_string})&$limit=1000000"
-        )
+        if use_cdc_token:
+            places_url = f"{places_base_url}?$$app_token={cdc_}$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv')&$limit=1000000"
+            sdoh_url = f"{sdoh_base_url}?$$app_token={cdc_}$where=measureid IN ({sdoh_var_string})&$limit=1000000"
+        else:
+            places_url = f"{places_base_url}?$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv')&$limit=1000000"
+            sdoh_url = f"{sdoh_base_url}?$where=measureid IN ({sdoh_var_string})&$limit=1000000"
 
     else:
         # combine locationids into comma separated string of strings for SoQL query
         locationid_string = (",").join([f"'{x}'" for x in locationid_list])
 
-        # app token not currently working?? try without it
-        # places_url = f"{places_base_url}?$$app_token={cdc_}$where=measureid IN ({var_string}) AND datavaluetypeid IN ('CrdPrv') AND locationid IN ({locationid_string})"
-        places_url = f"{places_base_url}?$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv') AND locationid IN ({locationid_string})"
-        sdoh_url = f"{sdoh_base_url}?$where=measureid IN ({sdoh_var_string}) AND locationid IN ({locationid_string})"
+        if use_cdc_token:
+            places_url = f"{places_base_url}?$$app_token={cdc_}$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv') AND locationid IN ({locationid_string})"
+            sdoh_url = f"{sdoh_base_url}?$$app_token={cdc_}$where=measureid IN ({sdoh_var_string}) AND locationid IN ({locationid_string})"
+        else:
+            places_url = f"{places_base_url}?$where=measureid IN ({places_var_string}) AND datavaluetypeid IN ('CrdPrv') AND locationid IN ({locationid_string})"
+            sdoh_url = f"{sdoh_base_url}?$where=measureid IN ({sdoh_var_string}) AND locationid IN ({locationid_string})"
 
     # collect separate results for PLACES and SDOH datasets
     results = []
