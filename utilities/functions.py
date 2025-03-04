@@ -1009,7 +1009,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
 
             df_wide["totalpopulation"] = df_wide["totalpopulation"].astype(float)
 
-        else:
+        else: #SDOH data
             df_wide = (
                 df[["locationid", "measureid", "data_value"]]
                 .pivot(columns=["measureid"], index="locationid", values="data_value")
@@ -1019,6 +1019,29 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
                     on="locationid",
                 )
             )
+
+            # pivot moe in separate dataframe and combine measureid name with moe name for new column names
+            df_moe = df[
+                [
+                    "locationid",
+                    "measureid",
+                    "moe",
+                ]
+            ].pivot(
+                columns=["measureid"],
+                index="locationid",
+                values=["moe"],
+            )
+            new_cols = []
+            for col_1, col_0 in zip(
+                df_moe.columns.get_level_values(1), df_moe.columns.get_level_values(0)
+            ):
+                new_cols.append(f"{col_1}_{col_0}")
+            df_moe.columns = new_cols
+
+            # merge wide data with confidence interval dataframe
+            df_wide = df_wide.merge(df_moe, on="locationid")
+
             df_wide["totalpopulation"] = df_wide["totalpopulation"].astype(float)
 
         # change any negative data values to NA

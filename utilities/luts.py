@@ -302,4 +302,12 @@ ci_dict = {
     "FOODSTAMP_high": "pct_foodstamps_high",
     "EMOTIONSPT_low": "pct_emospt_low",
     "EMOTIONSPT_high": "pct_emospt_high",
+    "REMNRTY_moe": "pct_minority_moe",
+    "NOHSDP_moe": "pct_no_hsdiploma_moe",
+    "POV150_moe": "pct_below_150pov_moe",
+    "BROAD_moe": "pct_no_bband_moe",
+    "CROWD_moe": "pct_crowding_moe",
+    "HCOST_moe": "pct_hcost_moe",
+    "SNGPNT_moe": "pct_single_parent_moe",
+    "UNEMP_moe": "pct_unemployed_moe",
 }
