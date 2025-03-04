@@ -143,7 +143,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | NA | Upper bound of the 95% confidence interval for percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt_high |
 
 
-### CDC SDOH (2017-2021)
+### CDC SDOH (2017-2021) - Raw data
 | Variable ID | long name | short name |
 | -------- | ------- | ------ |
 REMNRTY | Persons of racial or ethnic minority status | pct_minority |
@@ -155,3 +155,31 @@ HCOST | Housing cost burden among households | pct_hcost
 SNGPNT | Single-parent households | pct_single_parent
 UNEMP | Unemployment among people 16 years or older in the labor force | pct_unemployed
                 
+
+### CDC SDOH (2017-2021) - Calculated from raw data
+| Variable ID | long name | short name |
+| -------- | ------- | ------ |
+| NA | Percentage of persons of racial or ethnic minority status  | pct_minority |
+| NA | Lower bound of the 90% confidence interval for percentage of persons of racial or ethnic minority status  | pct_minority_low |
+| NA | Upper bound of the 90% confidence interval for ercentage of persons of racial or ethnic minority status  | pct_minority_high |
+| NA | Percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma |
+| NA | Lower bound of the 90% confidence interval for percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma_low |
+| NA | Upper bound of the 90% confidence interval for percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma_high |
+| NA | Percentage of persons living below 150% of the poverty level | pct_below_150pov |
+| NA | Lower bound of the 90% confidence interval for percentage of persons living below 150% of the poverty level | pct_below_150pov_low |
+| NA | Upper bound of the 90% confidence interval for percentage of persons living below 150% of the poverty level | pct_below_150pov_high |
+| NA | Percentage of households with no broadband internet subscription | pct_no_bband |
+| NA | Lower bound of the 90% confidence interval for percentage of households with no broadband internet subscription | pct_no_bband_low |
+| NA | Upper bound of the 90% confidence interval for percentage of households with no broadband internet subscription | pct_no_bband_high |
+| NA | Percentage of housing units with crowding | pct_crowding |
+| NA | Lower bound of the 90% confidence interval for percentage of housing units with crowding | pct_crowding_low |
+| NA | Upper bound of the 90% confidence interval for percentage of housing units with crowding | pct_crowding_high |
+| NA | Percentage of households housing cost burden | pct_hcost |
+| NA | Lower bound of the 90% confidence interval for percentage of households housing cost burden | pct_hcost_low |
+| NA | Upper bound of the 90% confidence interval for percentage of households housing cost burden | pct_hcost_high |
+| NA | Percentage of single-parent households | pct_single_parent |
+| NA | Lower bound of the 90% confidence interval for percentage of single-parent households | pct_single_parent_low |
+| NA | Upper bound of the 90% confidence interval for percentage of single-parent households | pct_single_parent_high |
+| NA | Percentage of persons unemployed among people 16 years or older in the labor force | pct_unemployed |
+| NA | Lower bound of the 90% confidence interval for percentage of persons unemployed among people 16 years or older in the labor force | pct_unemployed_low |
+| NA | Upper bound of the 90% confidence interval for percentage of persons unemployed among people 16 years or older in the labor force | pct_unemployed_high |
