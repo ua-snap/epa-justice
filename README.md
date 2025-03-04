@@ -76,7 +76,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | NA | Percentage of population Two or More Races | pct_multi |
 
 
-### Census ACS 5-year (2018-2022) - Raw data
+### Census ACS 5-year (2019-2023) - Raw data
 | Variable ID | long name | short name
 | -------- | ------- | ------ |
 | S1810_C03_001E | Percent with a disability!!Estimate!!Total civilian noninstitutionalized population | pct_w_disability |
@@ -87,7 +87,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | S2701_C05_001M | Margin of Error!!Percent Uninsured!!Civilian noninstitutionalized population	| moe_pct_uninsured |
 
 
-### Census ACS 5-year (2018-2022) - Calculated from raw data
+### Census ACS 5-year (2019-2023) - Calculated from raw data
 | Variable ID | long name | short name
 | -------- | ------- | ------ |
 | NA | Percentage of population with health insurance| pct_insured |

@@ -148,7 +148,7 @@ var_dict = dict(
             },
         },
         "acs5": {
-            "url": "https://api.census.gov/data/2022/acs/acs5/subject",  # note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
+            "url": "https://api.census.gov/data/2023/acs/acs5/subject",  # note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
             "vars": {
                 "S1810_C03_001E": {
                     "long_name": "Percent with a disability!!Estimate!!Total civilian noninstitutionalized population",
