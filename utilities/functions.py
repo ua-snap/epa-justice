@@ -80,11 +80,26 @@ def aggregate_results(results_df):
         else:
             return np.sum(x)
 
+    # create wrapper to use np.nanmean
+    def nanmean(x):
+        return np.nanmean(x)
+
+    # create moe aggregation function
+    # as defined here: https://www.census.gov/content/dam/Census/library/publications/2018/acs/acs_general_handbook_2018_ch08.pdf
+    def aggregate_moe(x):
+        if x.isna().any():
+            return np.nan
+        else:
+            return math.sqrt(np.sum(x**2))
+
     # build an aggregation dict for all data columns
     # use "first" for non-data columns, or the custom function when aggregating placename and GEOID strings
     # list columns that are only for adult population; we need to use the "adult_population" field when aggregating these
+    # list columns that have MOE values; we need to aggregate these according the formula defined above
+    # lis columns that do not deal with population at all (pct of housing units, etc...)... these will simply be averaged
     # sum all other data columns; they will be converted from pct to real population counts before summing
     non_data_cols = ["id", "name", "areatype", "placename", "GEOID", "comment"]
+
     adult_only_cols = [
         "pct_asthma",
         "pct_copd",
@@ -95,6 +110,28 @@ def aggregate_results(results_df):
         "pct_foodstamps",
         "pct_emospt",
     ]
+
+    moe_cols = [
+        "moe_pct_w_disability",
+        "moe_pct_insured",
+        "moe_pct_uninsured",
+        "pct_no_bband_moe",
+        "pct_crowding_moe",
+        "pct_hcost_moe",
+        "pct_no_hsdiploma_moe",
+        "pct_below_150pov_moe",
+        "pct_minority_moe",
+        "pct_single_parent_moe",
+        "pct_unemployed_moe",
+    ]
+
+    non_pop_cols = [
+        "pct_no_bband",
+        "pct_crowding",
+        "pct_hcost",
+        "pct_single_parent",
+    ]
+
     agg_dict = {}
 
     for col in df.columns:
@@ -103,6 +140,10 @@ def aggregate_results(results_df):
                 agg_dict[col] = concat_strings
             else:
                 agg_dict[col] = "first"
+        elif col in moe_cols:
+            agg_dict[col] = aggregate_moe
+        elif col in non_pop_cols:
+            agg_dict[col] = nanmean
         else:
             agg_dict[col] = sum_no_nan
 
@@ -140,30 +181,34 @@ def aggregate_results(results_df):
                 sub_df[pooled_sd_col_name] = pooled_sd
                 agg_dict[pooled_sd_col_name] = "first"
 
-        # compute population counts by row
+        # compute population counts by row, only for columns dealing with population percentages
         for col in sub_df.columns:
             if (
                 col != "total_population"
                 and col != "adult_population"
                 and col.endswith("pooled_sd") is False
                 and col not in adult_only_cols
+                and col not in moe_cols
+                and col not in non_pop_cols
                 and col not in non_data_cols
             ):
                 sub_df[col] = sub_df["total_population"] * sub_df[col] / 100
             elif col in adult_only_cols:
                 sub_df[col] = sub_df["adult_population"] * sub_df[col] / 100
 
-        # in this version of sub_df, the columns are population counts and NOT percentages
+        # in this version of sub_df, some of the columns are population counts and NOT percentages
         # so now we can use groupby and aggregate the data columns according to the agg_dict functions
         agg_df = sub_df.groupby("id").agg(agg_dict)
 
-        # convert back to percentages
+        # convert the columns dealing with population percentages from counts back to percentages
         for col in agg_df.columns:
             if (
                 col != "total_population"
                 and col != "adult_population"
                 and col.endswith("pooled_sd") is False
                 and col not in adult_only_cols
+                and col not in moe_cols
+                and col not in non_pop_cols
                 and col not in non_data_cols
             ):
                 agg_df[col] = round((agg_df[col] / agg_df["total_population"] * 100), 2)
@@ -181,9 +226,9 @@ def aggregate_results(results_df):
                 pooled_sd_col_name = measure_col_name + "_pooled_sd"
                 # use first value as pooled SD for each measure
                 pooled_sd = agg_df[pooled_sd_col_name].values[0]
-                # high 95% CI formula: value + (1.96 * (pooled SD / sqrt(adult population)))
+                # high 90% CI formula: value + (1.64 * (pooled SD / sqrt(adult population)))
                 agg_df[col] = agg_df[measure_col_name] + (
-                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
+                    1.64 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
                 )
             elif col.endswith("_low"):
                 # drop the column (it already exists with an incorrect value)
@@ -194,10 +239,27 @@ def aggregate_results(results_df):
                 pooled_sd_col_name = measure_col_name + "_pooled_sd"
                 # use first value as pooled SD for each measure
                 pooled_sd = agg_df[pooled_sd_col_name].values[0]
-                # low 95% CI formula: value - (1.96 * (pooled SD / sqrt(adult population)))
+                # low 90% CI formula: value - (1.64 * (pooled SD / sqrt(adult population)))
                 agg_df[col] = agg_df[measure_col_name] - (
-                    1.96 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
+                    1.64 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
                 )
+
+        # for columns with aggregated moe values, compute high and low CI values and drop the aggregated moe columns
+        for col in moe_cols:
+            # subtract "_moe" from the col name if that substring is in the col name string
+            if "_moe" in col:
+                measure_name = col.split("_")[0]
+            elif "moe_" in col:
+                measure_name = col.split("_")[1]
+            # set up the new column names
+            high_col_name = measure_name + "_high"
+            low_col_name = measure_name + "_low"
+            # calculate high and low CI values
+            agg_df[high_col_name] = agg_df[measure_name] + agg_df[col]
+            agg_df[low_col_name] = agg_df[measure_name] - agg_df[col]
+            # round to 2 decimal places
+            agg_df[high_col_name] = round(agg_df[high_col_name], 2)
+            agg_df[low_col_name] = round(agg_df[low_col_name], 2)
 
         # drop the original duplicated rows
         df.drop(df[df["id"] == dup[0]].index, inplace=True)
@@ -210,7 +272,9 @@ def aggregate_results(results_df):
 
     # list columns we want to drop from the final results dataframe
     drop_cols = [
-        col for col in out_df.columns if "pooled_sd" in col or "variance" in col
+        col
+        for col in out_df.columns
+        if "pooled_sd" in col or "variance" in col or "moe" in col
     ]
     drop_cols += ["adult_population"]
 
@@ -1009,7 +1073,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
 
             df_wide["totalpopulation"] = df_wide["totalpopulation"].astype(float)
 
-        else: #SDOH data
+        else:  # SDOH data
             df_wide = (
                 df[["locationid", "measureid", "data_value"]]
                 .pivot(columns=["measureid"], index="locationid", values="data_value")
