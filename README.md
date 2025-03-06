@@ -161,7 +161,7 @@ UNEMP | Unemployment among people 16 years or older in the labor force | pct_une
 | -------- | ------- | ------ |
 | NA | Percentage of persons of racial or ethnic minority status  | pct_minority |
 | NA | Lower bound of the 90% confidence interval for percentage of persons of racial or ethnic minority status  | pct_minority_low |
-| NA | Upper bound of the 90% confidence interval for ercentage of persons of racial or ethnic minority status  | pct_minority_high |
+| NA | Upper bound of the 90% confidence interval for percentage of persons of racial or ethnic minority status  | pct_minority_high |
 | NA | Percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma |
 | NA | Lower bound of the 90% confidence interval for percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma_low |
 | NA | Upper bound of the 90% confidence interval for percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma_high |
