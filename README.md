@@ -12,7 +12,7 @@ This repo accesses US Census datasets via their survey-specific API endpoints ([
 ## Processing instructions
 
 - Activate a `conda` environment that includes `pandas` (>2.0), `geopandas`, and `numpy`.
-- Use the `fetch_data_and_export.ipynb` and `more_to_ci.ipynb` notebooks to run the processing pipeline. (The first notebook also contains some tests of individual functions used for review during development.)
+- Use the `fetch_data_and_export.ipynb` and `moe_to_ci.ipynb` notebooks to run the processing pipeline. (The first notebook also contains some tests of individual functions used for review during development.)
 - View the `data_to_export.csv` results for the tabular data.
 - Run the `join_results_to_census_polygons.ipynb` notebook to create the shapefile with all tabular demographic data and the associated polygon of the area(s) used to compile that data. 
 
