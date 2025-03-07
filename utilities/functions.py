@@ -84,6 +84,10 @@ def aggregate_results(results_df):
     def nanmean(x):
         return np.nanmean(x)
 
+    # create function to replace negative values with 0
+    def replace_negatives(x):
+        return max(0, x)
+
     # create moe aggregation function
     # as defined here: https://www.census.gov/content/dam/Census/library/publications/2018/acs/acs_general_handbook_2018_ch08.pdf
     def aggregate_moe(x):
@@ -248,18 +252,18 @@ def aggregate_results(results_df):
         for col in moe_cols:
             # subtract "_moe" from the col name if that substring is in the col name string
             if "_moe" in col:
-                measure_name = col.split("_")[0]
+                measure_name = col.split("_moe")[0]
             elif "moe_" in col:
-                measure_name = col.split("_")[1]
+                measure_name = col.split("moe_")[1]
             # set up the new column names
             high_col_name = measure_name + "_high"
             low_col_name = measure_name + "_low"
             # calculate high and low CI values
             agg_df[high_col_name] = agg_df[measure_name] + agg_df[col]
             agg_df[low_col_name] = agg_df[measure_name] - agg_df[col]
-            # round to 2 decimal places
-            agg_df[high_col_name] = round(agg_df[high_col_name], 2)
-            agg_df[low_col_name] = round(agg_df[low_col_name], 2)
+            agg_df[low_col_name] = agg_df[low_col_name].apply(
+                replace_negatives
+            )  # the low CI value cannot go below zero!
 
         # drop the original duplicated rows
         df.drop(df[df["id"] == dup[0]].index, inplace=True)
@@ -278,7 +282,14 @@ def aggregate_results(results_df):
     ]
     drop_cols += ["adult_population"]
 
-    return out_df.drop(columns=drop_cols)
+    out_df = out_df.drop(columns=drop_cols)
+
+    # round all data columns to 2 decimal places (ie columns not in non_data_cols)
+    for col in out_df.columns:
+        if col not in non_data_cols:
+            out_df[col] = round(out_df[col], 2)
+
+    return out_df
 
 
 def create_comment_dict(geoid_lu_df):
