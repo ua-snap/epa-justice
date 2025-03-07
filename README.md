@@ -118,29 +118,29 @@ The data variables below are pulled for each geography. The `short name` column 
 | Variable ID | long name | short name |
 | -------- | ------- | ------ |
 | NA | Percentage of adults aged >=18 years who report being diagnosed with and currently having asthma | pct_asthma |
-| NA | Lower bound of the 95% confidence interval for percentage of adults aged >=18 years who report being diagnosed with and currently having asthma | pct_asthma_low |
-| NA | Upper bound of the 95% confidence interval for percentage of adults aged >=18 years who report being diagnosed with and currently having asthma | pct_asthma_high |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with and currently having asthma | pct_asthma_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with and currently having asthma | pct_asthma_high |
 | NA | Percentage of adults aged >=18 years who report being diagnosed with chronic obstructive pulmonary disease (COPD), emphysema, or chronic bronchitis | pct_copd |
-| NA | Lower bound of the 95% confidence interval for percentage of adults aged >=18 years who report being diagnosed with chronic obstructive pulmonary disease (COPD), emphysema, or chronic bronchitis | pct_copd_low |
-| NA | Upper bound of the 95% confidence interval for percentage of adults aged >=18 years who report being diagnosed with chronic obstructive pulmonary disease (COPD), emphysema, or chronic bronchitis | pct_copd_high |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with chronic obstructive pulmonary disease (COPD), emphysema, or chronic bronchitis | pct_copd_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with chronic obstructive pulmonary disease (COPD), emphysema, or chronic bronchitis | pct_copd_high |
 | NA | Percentage of adults aged >=18 years who report being diagnosed with coronary heart disease | pct_hd |
-| NA | Lower bound of the 95% confidence interval for percentage of adults aged >=18 years who report being diagnosed with coronary heart disease | pct_hd_low |
-| NA | Upper bound of the 95% confidence interval for percentage of adults aged >=18 years who report being diagnosed with coronary heart disease | pct_hd_high |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with coronary heart disease | pct_hd_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with coronary heart disease | pct_hd_high |
 | NA | Percentage of adults aged >=18 years who report having ever been told by a doctor, nurse, or other health professional that they have had a stroke | pct_stroke |
-| NA | Lower bound of the 95% confidence interval for percentage of adults aged >=18 years who report having ever been told by a doctor, nurse, or other health professional that they have had a stroke | pct_stroke_low |
-| NA | Upper bound of the 95% confidence interval for  percentage of adults aged >=18 years who report having ever been told by a doctor, nurse, or other health professional that they have had a stroke | pct_stroke_high |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report having ever been told by a doctor, nurse, or other health professional that they have had a stroke | pct_stroke_low |
+| NA | Upper bound of the 90% confidence interval for  percentage of adults aged >=18 years who report having ever been told by a doctor, nurse, or other health professional that they have had a stroke | pct_stroke_high |
 | NA | Percentage of adults aged >=18 years who report being diagnosed with diabetes (excluding diabetes during pregnancy/gestational diabetes) | pct_diabetes |
-| NA | Lower bound of the 95% confidence interval for percentage of adults aged >=18 years who report being diagnosed with diabetes (excluding diabetes during pregnancy/gestational diabetes) | pct_diabetes_low |
-| NA | Upper bound of the 95% confidence interval for percentage of adults aged >=18 years who report being diagnosed with diabetes (excluding diabetes during pregnancy/gestational diabetes) | pct_diabetes_high |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with diabetes (excluding diabetes during pregnancy/gestational diabetes) | pct_diabetes_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with diabetes (excluding diabetes during pregnancy/gestational diabetes) | pct_diabetes_high |
 | NA | Percentage of adults aged >=18 years who report having 'frequent mental distress' | pct_mh |
-| NA | Lower bound of the 95% confidence interval for percentage of adults aged >=18 years who report having 'frequent mental distress' | pct_mh_low |
-| NA | Upper bound of the 95% confidence interval for percentage of adults aged >=18 years who report having 'frequent mental distress' | pct_mh_high |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report having 'frequent mental distress' | pct_mh_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report having 'frequent mental distress' | pct_mh_high |
 | NA | Percentage of adults aged >=18 years that received food stamps in the past 12 months | pct_foodstamps |
-| NA | Lower bound of the 95% confidence interval for percentage of adults aged >=18 years that received food stamps in the past 12 months | pct_foodstamps_low |
-| NA | Upper bound of the 95% confidence interval for percentage of adults aged >=18 years that received food stamps in the past 12 months | pct_foodstamps_high |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years that received food stamps in the past 12 months | pct_foodstamps_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years that received food stamps in the past 12 months | pct_foodstamps_high |
 | NA | Percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt |
-| NA | Lower bound of the 95% confidence interval for percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt_low |
-| NA | Upper bound of the 95% confidence interval for percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt_high |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt_high |
 
 
 ### CDC SDOH (2017-2021) - Raw data
