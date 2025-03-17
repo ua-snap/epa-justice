@@ -51,7 +51,7 @@ def calculate_pop_variance(df):
 
 def aggregate_results(results_df):
     """Aggregates any one-to-many relationships in the final results table.
-    Includes calculating the pooled standard deviation and the 95% CI for each measure that reports those statistics.
+    Includes calculating the pooled standard deviation and the 90% CI for each measure that reports those statistics.
 
     Args:
         df (pandas.DataFrame): concatenated dataframe result from the run_fetch_and_merge() function
@@ -62,7 +62,7 @@ def aggregate_results(results_df):
     df = results_df.reset_index(drop=True)
 
     # calculate adult population variances (adds a new column to the dataframe for each measure)
-    # required for calculation of pooled 95% CI
+    # required for calculation of pooled 90% CI
     df = calculate_pop_variance(df)
 
     # make sure GEOIDs are strings in order to list them with sum (instead of summing them as integers!)
@@ -161,6 +161,7 @@ def aggregate_results(results_df):
             df[df.duplicated(subset="id")]["name"].unique().tolist(),
         )
     )
+
     # iterate thru the list of duplicated ids and names
     for dup in dups:
         print(f"Aggregating values for {dup[0]}: {dup[1]}")
@@ -248,22 +249,22 @@ def aggregate_results(results_df):
                     1.64 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
                 )
 
-        # for columns with aggregated moe values, compute high and low CI values and drop the aggregated moe columns
-        for col in moe_cols:
-            # subtract "_moe" from the col name if that substring is in the col name string
-            if "_moe" in col:
-                measure_name = col.split("_moe")[0]
-            elif "moe_" in col:
-                measure_name = col.split("moe_")[1]
-            # set up the new column names
-            high_col_name = measure_name + "_high"
-            low_col_name = measure_name + "_low"
-            # calculate high and low CI values
-            agg_df[high_col_name] = agg_df[measure_name] + agg_df[col]
-            agg_df[low_col_name] = agg_df[measure_name] - agg_df[col]
-            agg_df[low_col_name] = agg_df[low_col_name].apply(
-                replace_negatives
-            )  # the low CI value cannot go below zero!
+        # # for columns with aggregated moe values, compute high and low CI values and drop the aggregated moe columns
+        # for col in moe_cols:
+        #     # subtract "_moe" from the col name if that substring is in the col name string
+        #     if "_moe" in col:
+        #         measure_name = col.split("_moe")[0]
+        #     elif "moe_" in col:
+        #         measure_name = col.split("moe_")[1]
+        #     # set up the new column names
+        #     high_col_name = measure_name + "_high"
+        #     low_col_name = measure_name + "_low"
+        #     # calculate high and low CI values
+        #     agg_df[high_col_name] = agg_df[measure_name] + agg_df[col]
+        #     agg_df[low_col_name] = agg_df[measure_name] - agg_df[col]
+        #     agg_df[low_col_name] = agg_df[low_col_name].apply(
+        #         replace_negatives
+        #     )  # the low CI value cannot go below zero!
 
         # drop the original duplicated rows
         df.drop(df[df["id"] == dup[0]].index, inplace=True)
@@ -273,6 +274,22 @@ def aggregate_results(results_df):
 
         out_df = pd.concat([df, *agg_df_list])
         out_df.reset_index(drop=True, inplace=True)
+
+    for col in moe_cols:
+        # subtract "_moe" from the col name if that substring is in the col name string
+        if "_moe" in col:
+            measure_name = col.split("_moe")[0]
+        elif "moe_" in col:
+            measure_name = col.split("moe_")[1]
+        # set up the new column names
+        high_col_name = measure_name + "_high"
+        low_col_name = measure_name + "_low"
+        # calculate high and low CI values
+        out_df[high_col_name] = out_df[measure_name] + out_df[col]
+        out_df[low_col_name] = out_df[measure_name] - out_df[col]
+        out_df[low_col_name] = out_df[low_col_name].apply(
+            replace_negatives
+        )  # the low CI value cannot go below zero!
 
     # list columns we want to drop from the final results dataframe
     drop_cols = [
