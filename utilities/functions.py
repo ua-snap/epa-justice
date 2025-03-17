@@ -249,23 +249,6 @@ def aggregate_results(results_df):
                     1.64 * (pooled_sd / math.sqrt(agg_df["adult_population"].sum()))
                 )
 
-        # # for columns with aggregated moe values, compute high and low CI values and drop the aggregated moe columns
-        # for col in moe_cols:
-        #     # subtract "_moe" from the col name if that substring is in the col name string
-        #     if "_moe" in col:
-        #         measure_name = col.split("_moe")[0]
-        #     elif "moe_" in col:
-        #         measure_name = col.split("moe_")[1]
-        #     # set up the new column names
-        #     high_col_name = measure_name + "_high"
-        #     low_col_name = measure_name + "_low"
-        #     # calculate high and low CI values
-        #     agg_df[high_col_name] = agg_df[measure_name] + agg_df[col]
-        #     agg_df[low_col_name] = agg_df[measure_name] - agg_df[col]
-        #     agg_df[low_col_name] = agg_df[low_col_name].apply(
-        #         replace_negatives
-        #     )  # the low CI value cannot go below zero!
-
         # drop the original duplicated rows
         df.drop(df[df["id"] == dup[0]].index, inplace=True)
 
