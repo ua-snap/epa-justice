@@ -148,7 +148,7 @@ var_dict = dict(
             },
         },
         "acs5": {
-            "url": "https://api.census.gov/data/2022/acs/acs5/subject",  # note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
+            "url": "https://api.census.gov/data/2023/acs/acs5/subject",  # note that if any variable not found in a "subject" table is used, this base URL will need to be re-configured!
             "vars": {
                 "S1810_C03_001E": {
                     "long_name": "Percent with a disability!!Estimate!!Total civilian noninstitutionalized population",
@@ -302,4 +302,12 @@ ci_dict = {
     "FOODSTAMP_high": "pct_foodstamps_high",
     "EMOTIONSPT_low": "pct_emospt_low",
     "EMOTIONSPT_high": "pct_emospt_high",
+    "REMNRTY_moe": "pct_minority_moe",
+    "NOHSDP_moe": "pct_no_hsdiploma_moe",
+    "POV150_moe": "pct_below_150pov_moe",
+    "BROAD_moe": "pct_no_bband_moe",
+    "CROWD_moe": "pct_crowding_moe",
+    "HCOST_moe": "pct_hcost_moe",
+    "SNGPNT_moe": "pct_single_parent_moe",
+    "UNEMP_moe": "pct_unemployed_moe",
 }

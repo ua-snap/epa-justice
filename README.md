@@ -11,15 +11,16 @@ This repo accesses US Census datasets via their survey-specific API endpoints ([
 
 ## Processing instructions
 
-- Activate a `conda` environment that includes `pandas` (>2.0) and `numpy`.
+- Activate a `conda` environment that includes `pandas` (>2.0), `geopandas`, and `numpy`.
 - Use the `fetch_data_and_export.ipynb` notebook to run the processing pipeline. (This notebook also contains some tests of individual functions used for review during development.)
-- View the `data_to_export.csv` results.
+- View the `data_to_export.csv` results for the tabular data.
+- Run the `join_results_to_census_polygons.ipynb` notebook to create the shapefile with all tabular demographic data and the associated polygon of the area(s) used to compile that data. 
 
 This repo also contains additional processing tools that were used for adding new places to the [GVV repo](https://github.com/ua-snap/geospatial-vector-veracity) that were required for this specific project (`update_NCR_points.ipynb`, `add_to_NCR.csv`,   `alaska_point_locations.csv`, and `add_point_location.py`). These shouldn't need to be run again, but are saved here for now in case the project scope changes and more places need to be added.
 
 ## Data Dictionary
 
-The data variables below are pulled for each geography. The `short name` column is the abbreviated name used in the exported `data_to_export.csv`. All other column names should be self explanatory.
+The data variables below are pulled for each geography. The `short name` column is the abbreviated name used in the exported `data_to_export.csv`. (Note that not all raw data columns listed below are included in the output.)
 
 ### Census DHC Year 2020 - Raw data
 
@@ -75,7 +76,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | NA | Percentage of population Two or More Races | pct_multi |
 
 
-### Census ACS 5-year (2018-2022)
+### Census ACS 5-year (2019-2023) - Raw data
 | Variable ID | long name | short name
 | -------- | ------- | ------ |
 | S1810_C03_001E | Percent with a disability!!Estimate!!Total civilian noninstitutionalized population | pct_w_disability |
@@ -86,7 +87,21 @@ The data variables below are pulled for each geography. The `short name` column 
 | S2701_C05_001M | Margin of Error!!Percent Uninsured!!Civilian noninstitutionalized population	| moe_pct_uninsured |
 
 
-### CDC PLACES Year 2024
+### Census ACS 5-year (2019-2023) - Calculated from raw data
+| Variable ID | long name | short name
+| -------- | ------- | ------ |
+| NA | Percentage of population with health insurance| pct_insured |
+| NA | Lower bound of the 90% confidence interval for percentage of population with health insurance| pct_insured_low |
+| NA | Upper bound of the 90% confidence interval for percentage of population with health insurance| pct_insured_high |
+| NA | Percentage of population without health insurance| pct_uninsured |
+| NA | Lower bound of the 90% confidence interval for percentage of population without health insurance| pct_uninsured_low |
+| NA | Upper bound of the 90% confidence interval for percentage of population without health insurance| pct_uninsured_high |
+| NA | Percentage of the population with a reported disability | pct_w_disability |
+| NA | Lower bound of the 90% confidence interval for percentage of the population with a reported disability | pct_w_disability_low |
+| NA | Upper bound of the 90% confidence interval for percentage of the population with a reported disability | pct_w_disability_high |
+
+
+### CDC PLACES Year 2024 - Raw data
 | Variable ID | long name | short name | data value type |
 | -------- | ------- | ------ | ------ |
 | CASTHMA | Current asthma among adults aged >=18 years | pct_asthma | crude prevalence |               
@@ -99,7 +114,36 @@ The data variables below are pulled for each geography. The `short name` column 
 | EMOTIONSPT | Lack of social and emotional support among adults aged >=18 years | pct_emospt | crude prevalence |
 
 
-### CDC SDOH (2017-2021)
+### CDC PLACES Year 2024 - Calculated from raw data
+| Variable ID | long name | short name |
+| -------- | ------- | ------ |
+| NA | Percentage of adults aged >=18 years who report being diagnosed with and currently having asthma | pct_asthma |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with and currently having asthma | pct_asthma_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with and currently having asthma | pct_asthma_high |
+| NA | Percentage of adults aged >=18 years who report being diagnosed with chronic obstructive pulmonary disease (COPD), emphysema, or chronic bronchitis | pct_copd |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with chronic obstructive pulmonary disease (COPD), emphysema, or chronic bronchitis | pct_copd_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with chronic obstructive pulmonary disease (COPD), emphysema, or chronic bronchitis | pct_copd_high |
+| NA | Percentage of adults aged >=18 years who report being diagnosed with coronary heart disease | pct_hd |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with coronary heart disease | pct_hd_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with coronary heart disease | pct_hd_high |
+| NA | Percentage of adults aged >=18 years who report having ever been told by a doctor, nurse, or other health professional that they have had a stroke | pct_stroke |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report having ever been told by a doctor, nurse, or other health professional that they have had a stroke | pct_stroke_low |
+| NA | Upper bound of the 90% confidence interval for  percentage of adults aged >=18 years who report having ever been told by a doctor, nurse, or other health professional that they have had a stroke | pct_stroke_high |
+| NA | Percentage of adults aged >=18 years who report being diagnosed with diabetes (excluding diabetes during pregnancy/gestational diabetes) | pct_diabetes |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with diabetes (excluding diabetes during pregnancy/gestational diabetes) | pct_diabetes_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report being diagnosed with diabetes (excluding diabetes during pregnancy/gestational diabetes) | pct_diabetes_high |
+| NA | Percentage of adults aged >=18 years who report having 'frequent mental distress' | pct_mh |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report having 'frequent mental distress' | pct_mh_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report having 'frequent mental distress' | pct_mh_high |
+| NA | Percentage of adults aged >=18 years that received food stamps in the past 12 months | pct_foodstamps |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years that received food stamps in the past 12 months | pct_foodstamps_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years that received food stamps in the past 12 months | pct_foodstamps_high |
+| NA | Percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt |
+| NA | Lower bound of the 90% confidence interval for percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt_low |
+| NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt_high |
+
+
+### CDC SDOH (2017-2021) - Raw data
 | Variable ID | long name | short name |
 | -------- | ------- | ------ |
 REMNRTY | Persons of racial or ethnic minority status | pct_minority |
@@ -111,3 +155,31 @@ HCOST | Housing cost burden among households | pct_hcost
 SNGPNT | Single-parent households | pct_single_parent
 UNEMP | Unemployment among people 16 years or older in the labor force | pct_unemployed
                 
+
+### CDC SDOH (2017-2021) - Calculated from raw data
+| Variable ID | long name | short name |
+| -------- | ------- | ------ |
+| NA | Percentage of persons of racial or ethnic minority status  | pct_minority |
+| NA | Lower bound of the 90% confidence interval for percentage of persons of racial or ethnic minority status  | pct_minority_low |
+| NA | Upper bound of the 90% confidence interval for percentage of persons of racial or ethnic minority status  | pct_minority_high |
+| NA | Percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma |
+| NA | Lower bound of the 90% confidence interval for percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma_low |
+| NA | Upper bound of the 90% confidence interval for percentage of persons with no high school diploma among adults aged 25 years or older | pct_no_hsdiploma_high |
+| NA | Percentage of persons living below 150% of the poverty level | pct_below_150pov |
+| NA | Lower bound of the 90% confidence interval for percentage of persons living below 150% of the poverty level | pct_below_150pov_low |
+| NA | Upper bound of the 90% confidence interval for percentage of persons living below 150% of the poverty level | pct_below_150pov_high |
+| NA | Percentage of households with no broadband internet subscription | pct_no_bband |
+| NA | Lower bound of the 90% confidence interval for percentage of households with no broadband internet subscription | pct_no_bband_low |
+| NA | Upper bound of the 90% confidence interval for percentage of households with no broadband internet subscription | pct_no_bband_high |
+| NA | Percentage of housing units with crowding | pct_crowding |
+| NA | Lower bound of the 90% confidence interval for percentage of housing units with crowding | pct_crowding_low |
+| NA | Upper bound of the 90% confidence interval for percentage of housing units with crowding | pct_crowding_high |
+| NA | Percentage of households housing cost burden | pct_hcost |
+| NA | Lower bound of the 90% confidence interval for percentage of households housing cost burden | pct_hcost_low |
+| NA | Upper bound of the 90% confidence interval for percentage of households housing cost burden | pct_hcost_high |
+| NA | Percentage of single-parent households | pct_single_parent |
+| NA | Lower bound of the 90% confidence interval for percentage of single-parent households | pct_single_parent_low |
+| NA | Upper bound of the 90% confidence interval for percentage of single-parent households | pct_single_parent_high |
+| NA | Percentage of persons unemployed among people 16 years or older in the labor force | pct_unemployed |
+| NA | Lower bound of the 90% confidence interval for percentage of persons unemployed among people 16 years or older in the labor force | pct_unemployed_low |
+| NA | Upper bound of the 90% confidence interval for percentage of persons unemployed among people 16 years or older in the labor force | pct_unemployed_high |
