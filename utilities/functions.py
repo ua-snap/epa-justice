@@ -255,8 +255,8 @@ def aggregate_results(results_df):
         # add the newly aggregated rows to agg_df_list and concatenate them with the original dataframe
         agg_df_list.append(agg_df)
 
-        out_df = pd.concat([df, *agg_df_list])
-        out_df.reset_index(drop=True, inplace=True)
+        df = pd.concat([df, *agg_df_list])
+        df.reset_index(drop=True, inplace=True)
 
     for col in moe_cols:
         # subtract "_moe" from the col name if that substring is in the col name string
@@ -268,28 +268,28 @@ def aggregate_results(results_df):
         high_col_name = measure_name + "_high"
         low_col_name = measure_name + "_low"
         # calculate high and low CI values
-        out_df[high_col_name] = out_df[measure_name] + out_df[col]
-        out_df[low_col_name] = out_df[measure_name] - out_df[col]
-        out_df[low_col_name] = out_df[low_col_name].apply(
+        df[high_col_name] = df[measure_name] + df[col]
+        df[low_col_name] = df[measure_name] - df[col]
+        df[low_col_name] = df[low_col_name].apply(
             replace_negatives
         )  # the low CI value cannot go below zero!
 
     # list columns we want to drop from the final results dataframe
     drop_cols = [
         col
-        for col in out_df.columns
+        for col in df.columns
         if "pooled_sd" in col or "variance" in col or "moe" in col
     ]
     drop_cols += ["adult_population"]
 
-    out_df = out_df.drop(columns=drop_cols)
+    df = df.drop(columns=drop_cols)
 
     # round all data columns to 2 decimal places (ie columns not in non_data_cols)
-    for col in out_df.columns:
+    for col in df.columns:
         if col not in non_data_cols:
-            out_df[col] = round(out_df[col], 2)
+            df[col] = round(df[col], 2)
 
-    return out_df
+    return df
 
 
 def create_comment_dict(geoid_lu_df):
@@ -356,7 +356,6 @@ def fetch_and_merge(geoid_lu_df, gvv_id, comment_dict):
     Returns:
         pandas.DataFrame
     """
-
     geoids = get_standard_geoid_df(geoid_lu_df, gvv_id)
     dhc = fetch_census_data_and_compute("dhc", gvv_id, geoid_lu_df)
     acs5 = fetch_census_data_and_compute("acs5", gvv_id, geoid_lu_df)
@@ -520,7 +519,7 @@ def get_standard_geoid_df(geoid_lu_df, gvv_id):
             # get last 5 digits for zip code
             geoid_list = [geoidfqs[0][-5:]]
         elif areatype_str == "tract":
-            # get last 7 digits for county FIPS code + tract code
+            # get last 9 digits for county FIPS code + tract code
             geoid_list = [geoidfqs[0][-9:]]
         elif areatype_str == "state":
             # return 2 digit AK FIPs code
@@ -854,8 +853,8 @@ def fetch_census_data_and_compute(survey_id, gvv_id, geoid_lu_df, print_url=Fals
     # request the data, raise error if not returned
     with requests.get(url) as r:
         if r.status_code != 200:
-            # TODO: raise error
-            print("No response, check your URL")
+            # TODO: raise error?
+            print(f"No response from {survey_id} for {gvv_id}, check your URL: {url}")
         else:
             r_json = r.json()
 
@@ -968,7 +967,7 @@ def fetch_cdc_data_and_compute(gvv_id, geoid_lu_df, print_url=False):
             print(f"Requesting CDC {survey} data from: {url}")
         with requests.get(url) as r:
             if r.status_code != 200:
-                print("No response, check your URL")
+                print(f"No response from {survey} for {gvv_id}, check your URL: {url}")
             else:
                 r_json = r.json()
 
