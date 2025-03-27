@@ -84,9 +84,12 @@ def aggregate_results(results_df):
     def nanmean(x):
         return np.nanmean(x)
 
-    # create function to replace negative values with 0
+    # create function to replace negative values with 0 (ignoring nans)
     def replace_negatives(x):
-        return max(0, x)
+        if np.isnan(x):
+            return np.nan
+        else:
+            return max(0, x)
 
     # create moe aggregation function
     # as defined here: https://www.census.gov/content/dam/Census/library/publications/2018/acs/acs_general_handbook_2018_ch08.pdf
