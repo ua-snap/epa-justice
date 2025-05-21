@@ -7,7 +7,7 @@ This repo includes functions and lookup tables to support the EPA-Justice-HIA pr
 
 Some places have a one-to-many relationship with census geographies. In these cases, when results are available for every geographic unit, value are aggregated according to the guidance [here](https://www.cdc.gov/places/faqs/using-data/index.html). If results are unavailable for any geographic unit, values are not aggregated and and instead replaced with NA.
 
-This repo accesses US Census datasets via their survey-specific API endpoints ([ACS 5-year](https://www.census.gov/data/developers/data-sets/acs-5year.html) and [DHC](https://www.census.gov/data/developers/data-sets/decennial-census.html)), the CDC [PLACES](https://www.cdc.gov/places/index.html) datasets via their geography-specific API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-County-Data-20/swc5-untb/about_data), [place](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Place-Data-202/eav7-hnsx/about_data), [tract](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-ZCTA-Data-2023/qnzd-25i4/about_data)), and the CDC [SDOH](https://www.cdc.gov/places/social-determinants-of-health-and-places-data/index.html) datasets via their geography-specific API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-County-ACS-2017-2021/i6u4-y3g4/about_data), [place](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-Place-ACS-2017-2021/edkk-ze78/about_data), [tract](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-Census-Tract-ACS-2017-2021/e539-uadk/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/SDOH-Measures-for-ZCTA-ACS-2017-2021/bumh-rgsq/about_data)). Note that zip code geographies are not currently used in this project, but the codebase here supports using zip codes if desired.
+This repo accesses US Census datasets via their survey-specific API endpoints ([ACS 5-year](https://www.census.gov/data/developers/data-sets/acs-5year.html) and [DHC](https://www.census.gov/data/developers/data-sets/decennial-census.html)), the CDC [PLACES](https://www.cdc.gov/places/index.html) datasets via their geography-specific API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-County-Data-20/swc5-untb/about_data), [place](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Place-Data-202/eav7-hnsx/about_data), [tract](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-ZCTA-Data-2023/qnzd-25i4/about_data)), and the CDC Non-Medical Factor Measures datasets via their geography-specific API endpoints (for [county](https://data.cdc.gov/500-Cities-Places/Non-Medical-Factor-Measures-for-County-ACS-2017-20/i6u4-y3g4/about_data), [place](https://data.cdc.gov/500-Cities-Places/Non-Medical-Factor-Measures-for-Place-ACS-2017-202/edkk-ze78/about_data), [tract](https://data.cdc.gov/500-Cities-Places/Non-Medical-Factor-Measures-for-Census-Tract-ACS-2/e539-uadk/about_data), and [zip code](https://data.cdc.gov/500-Cities-Places/Non-Medical-Factor-Measures-for-ZCTA-ACS-2017-2021/bumh-rgsq/about_data)). Note that zip code geographies are not currently used in this project, but the codebase here supports using zip codes if desired.
 
 ## Processing instructions
 
@@ -143,7 +143,7 @@ The data variables below are pulled for each geography. The `short name` column 
 | NA | Upper bound of the 90% confidence interval for percentage of adults aged >=18 years who report 'lack of social and emotional support' | pct_emospt_high |
 
 
-### CDC SDOH (2017-2021) - Raw data
+### CDC Non-Medical Factor Measures (2017-2021) - Raw data
 | Variable ID | long name | short name |
 | -------- | ------- | ------ |
 REMNRTY | Persons of racial or ethnic minority status | pct_minority |
@@ -156,7 +156,7 @@ SNGPNT | Single-parent households | pct_single_parent
 UNEMP | Unemployment among people 16 years or older in the labor force | pct_unemployed
                 
 
-### CDC SDOH (2017-2021) - Calculated from raw data
+### CDC Non-Medical Factor Measures (2017-2021) - Calculated from raw data
 | Variable ID | long name | short name |
 | -------- | ------- | ------ |
 | NA | Percentage of persons of racial or ethnic minority status  | pct_minority |
